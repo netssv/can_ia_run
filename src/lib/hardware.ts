@@ -47,6 +47,7 @@ const GPU_DB: Record<string, { vram: number; bw: number; cores: number }> = {
   "RTX 3090 Ti": { vram: 24, bw: 1008, cores: 10752 },
   "RTX 3090": { vram: 24, bw: 936, cores: 10496 },
   "RTX 3080 Ti": { vram: 12, bw: 912, cores: 10240 },
+  "RTX 3080 12GB": { vram: 12, bw: 912, cores: 8960 },
   "RTX 3080": { vram: 10, bw: 760, cores: 8704 },
   "RTX 3070 Ti": { vram: 8, bw: 608, cores: 6144 },
   "RTX 3070": { vram: 8, bw: 448, cores: 5888 },
@@ -56,6 +57,20 @@ const GPU_DB: Record<string, { vram: number; bw: number; cores: number }> = {
   "RTX A6000": { vram: 48, bw: 768, cores: 10752 },
   "RTX A5000": { vram: 24, bw: 768, cores: 8192 },
   "RTX A4000": { vram: 16, bw: 448, cores: 6144 },
+
+  // RTX 20 series - importantes
+  "RTX 2080 Ti": { vram: 11, bw: 616, cores: 4352 },
+  "RTX 2080 SUPER": { vram: 8, bw: 496, cores: 3072 },
+  "RTX 2080": { vram: 8, bw: 448, cores: 2944 },
+  "RTX 2070 SUPER": { vram: 8, bw: 448, cores: 2560 },
+  "RTX 2070": { vram: 8, bw: 448, cores: 2304 },
+  "RTX 2060 SUPER": { vram: 8, bw: 448, cores: 2176 },
+  "RTX 2060": { vram: 6, bw: 336, cores: 1920 },
+
+  // Variantes útiles
+  "RTX 2060 12GB": { vram: 12, bw: 336, cores: 2176 },
+  "RTX 3050 6GB": { vram: 6, bw: 168, cores: 2304 },
+
   "A100": { vram: 80, bw: 2039, cores: 6912 },
   "H100": { vram: 80, bw: 3350, cores: 14592 },
   "L40S": { vram: 48, bw: 864, cores: 18176 },
@@ -230,7 +245,10 @@ export function cleanGPUName(renderer: string): string {
     .replace(/,\s*Direct3D.*$/i, "")
     .replace(/,\s*OpenGL.*$/i, "")
     .replace(/,\s*Vulkan.*$/i, "")
+    .replace(/\s+Direct3D\d*/i, "")
     .replace(/vs_\d+_\d+.*$/, "")
+    .replace(/\(0x[0-9A-Fa-f]+\)/g, "")
+    .replace(/^(NVIDIA|AMD|Intel),\s*\1\b/i, "$1")
     .replace(/\s{2,}/g, " ")
     .trim();
   const metalMatch = name.match(/Apple\s*(?:—\s*)?(.+)/i);

@@ -74,9 +74,9 @@ function timeAgo(dateStr: string | null): string {
     <section id="hw-panel" class="mb-10 min-h-[52px]">
       <div id="hw-bar" class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 font-mono text-xs text-secondary">
         <!-- GPU (most important for AI) -->
-        <span id="hw-gpu" class="inline-flex items-center gap-1.5 text-muted">
+        <span id="hw-gpu" class="inline-flex items-center gap-1.5 text-muted max-w-[50ch]">
           <IconGpu class="h-3.5 w-3.5 shrink-0" />
-          <span>detecting...</span>
+          <span class="truncate">detecting...</span>
         </span>
         <span class="text-edge/40">|</span>
         <!-- RAM -->

@@ -1,0 +1,51 @@
+---
+import Logo from "../icons/logo.svg";
+const currentPath = Astro.url.pathname;
+---
+
+<nav class="border-b border-edge/40">
+  <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-2.5 sm:px-6">
+    <a href="/" class="flex items-center gap-1 font-pixel text-xs text-accent transition-colors hover:text-primary">
+      <Logo class="size-3" />
+      CanIRun.ai
+    </a>
+    <div class="flex items-center gap-4 font-mono text-[11px]">
+      <a
+        href="/tier"
+        class:list={[
+          "transition-colors hover:text-accent",
+          currentPath === "/tier" ? "text-primary" : "text-primary/70",
+        ]}
+      >
+        [tier list]
+      </a>
+      <a
+        href="/docs"
+        class:list={[
+          "transition-colors hover:text-accent",
+          currentPath === "/docs" ? "text-primary" : "text-primary/70",
+        ]}
+      >
+        [docs]
+      </a>
+      <a
+        href="/why"
+        class:list={[
+          "transition-colors hover:text-accent",
+          currentPath === "/why" ? "text-primary" : "text-primary/70",
+        ]}
+      >
+        [why]
+      </a>
+      <a
+        href="/advertise"
+        class:list={[
+          "transition-colors hover:text-accent",
+          currentPath === "/advertise" ? "text-primary" : "text-primary/70",
+        ]}
+      >
+        [advertise]
+      </a>
+    </div>
+  </div>
+</nav>

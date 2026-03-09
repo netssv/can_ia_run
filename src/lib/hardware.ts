@@ -29,7 +29,7 @@ export interface GradeInfo {
 
 // ── GPU Database ───────────────────────────────────────────
 
-const GPU_DB: Record<string, { vram: number; bw: number; cores: number }> = {
+export const GPU_DB: Record<string, { vram: number; bw: number; cores: number }> = {
   "RTX 5090": { vram: 32, bw: 1792, cores: 21760 },
   "RTX 5080": { vram: 16, bw: 960, cores: 10752 },
   "RTX 5070 Ti": { vram: 16, bw: 896, cores: 8960 },
@@ -153,7 +153,10 @@ const GPU_DB: Record<string, { vram: number; bw: number; cores: number }> = {
   "UHD Graphics 620": { vram: 0, bw: 34, cores: 24 },
 };
 
-const APPLE_DB: Record<string, { ram: number; bw: number; cpuCores: number; gpuCores: number }> = {
+export const APPLE_DB: Record<string, { ram: number; bw: number; cpuCores: number; gpuCores: number }> = {
+  "m5 max": { ram: 36, bw: 614, cpuCores: 18, gpuCores: 40 },
+  "m5 pro": { ram: 24, bw: 307, cpuCores: 18, gpuCores: 20 },
+  "m5": { ram: 16, bw: 153, cpuCores: 10, gpuCores: 10 },
   "m4 ultra": { ram: 192, bw: 819, cpuCores: 28, gpuCores: 60 },
   "m4 max": { ram: 36, bw: 546, cpuCores: 12, gpuCores: 32 },
   "m4 pro": { ram: 24, bw: 273, cpuCores: 12, gpuCores: 18 },
@@ -174,7 +177,7 @@ const APPLE_DB: Record<string, { ram: number; bw: number; cpuCores: number; gpuC
 
 // ── Mobile GPU Database (Android) ──────────────────────────
 
-const MOBILE_GPU_DB: Record<string, { bw: number }> = {
+export const MOBILE_GPU_DB: Record<string, { bw: number }> = {
   "Adreno 830": { bw: 90 },
   "Adreno 750": { bw: 77 },
   "Adreno 740": { bw: 62 },
@@ -306,7 +309,7 @@ function matchApple(renderer: string): { ram: number; bw: number; cpuCores: numb
 
 function isAppleSiliconCheck(renderer: string): boolean {
   const r = renderer.toLowerCase();
-  return r.includes("apple") && (r.includes("m1") || r.includes("m2") || r.includes("m3") || r.includes("m4") || r.includes("gpu"));
+  return r.includes("apple") && (r.includes("m1") || r.includes("m2") || r.includes("m3") || r.includes("m4") || r.includes("m5") || r.includes("gpu"));
 }
 
 export function cleanGPUName(renderer: string): string {
@@ -967,9 +970,13 @@ export const GRADES: Record<Grade, GradeInfo> = {
 const HW_OVERRIDE_KEY = "canirun-hw-overrides";
 
 export interface HardwareOverrides {
+  device?: string;
   ramGB?: number;
   memoryBandwidth?: number;
   gpuCores?: number;
+  isAppleSilicon?: boolean;
+  isMobile?: boolean;
+  estimatedVRAM?: number | null;
 }
 
 export function getHardwareOverrides(): HardwareOverrides {
@@ -984,9 +991,13 @@ export function getHardwareOverrides(): HardwareOverrides {
 export function saveHardwareOverrides(overrides: HardwareOverrides): void {
   try {
     const clean: HardwareOverrides = {};
+    if (overrides.device !== undefined) clean.device = overrides.device;
     if (overrides.ramGB !== undefined) clean.ramGB = overrides.ramGB;
     if (overrides.memoryBandwidth !== undefined) clean.memoryBandwidth = overrides.memoryBandwidth;
     if (overrides.gpuCores !== undefined) clean.gpuCores = overrides.gpuCores;
+    if (overrides.isAppleSilicon !== undefined) clean.isAppleSilicon = overrides.isAppleSilicon;
+    if (overrides.isMobile !== undefined) clean.isMobile = overrides.isMobile;
+    if (overrides.estimatedVRAM !== undefined) clean.estimatedVRAM = overrides.estimatedVRAM;
     if (Object.keys(clean).length === 0) {
       localStorage.removeItem(HW_OVERRIDE_KEY);
     } else {
@@ -999,26 +1010,63 @@ export function applyOverrides(hw: HardwareInfo, overrides?: HardwareOverrides):
   const o = overrides ?? getHardwareOverrides();
   if (Object.keys(o).length === 0) return hw;
   const result = { ...hw };
+  if (o.isAppleSilicon !== undefined) result.isAppleSilicon = o.isAppleSilicon;
+  if (o.isMobile !== undefined) result.isMobile = o.isMobile;
+  if (o.estimatedVRAM !== undefined) result.estimatedVRAM = o.estimatedVRAM;
   if (o.ramGB !== undefined) {
     result.ramGB = o.ramGB;
     result.totalUsableRAM = o.ramGB;
-    if (result.estimatedVRAM !== null) {
-      result.estimatedVRAM = o.ramGB;
-    }
   }
-  if (o.memoryBandwidth !== undefined) {
-    result.memoryBandwidth = o.memoryBandwidth;
-  }
-  if (o.gpuCores !== undefined) {
-    result.gpuCores = o.gpuCores;
-  }
+  if (o.memoryBandwidth !== undefined) result.memoryBandwidth = o.memoryBandwidth;
+  if (o.gpuCores !== undefined) result.gpuCores = o.gpuCores;
   return result;
 }
 
-export const RAM_OPTIONS = [2, 4, 6, 8, 12, 16, 18, 24, 32, 36, 48, 64, 96, 128, 192];
-export const BW_OPTIONS = [50, 68, 100, 120, 150, 200, 224, 273, 288, 300, 360, 408, 448, 504, 546, 672, 768, 819, 960, 1008, 1792, 2039, 3350];
-export const GPU_CORES_OPTIONS = [256, 512, 1024, 2048, 3072, 4096, 5120, 6144, 7168, 8192, 9728, 10240, 10752, 14592, 16384, 18176, 21760];
+export function getDeviceOverrides(deviceKey: string): HardwareOverrides | null {
+  if (deviceKey.startsWith("apple:")) {
+    const chip = deviceKey.slice(6);
+    const data = APPLE_DB[chip];
+    if (!data) return null;
+    return {
+      device: deviceKey,
+      ramGB: data.ram,
+      memoryBandwidth: data.bw,
+      gpuCores: data.gpuCores,
+      isAppleSilicon: true,
+      isMobile: false,
+      estimatedVRAM: null,
+    };
+  }
+  if (deviceKey.startsWith("gpu:")) {
+    const name = deviceKey.slice(4);
+    const data = GPU_DB[name];
+    if (!data) return null;
+    return {
+      device: deviceKey,
+      ramGB: data.vram,
+      memoryBandwidth: data.bw,
+      gpuCores: data.cores,
+      isAppleSilicon: false,
+      isMobile: false,
+      estimatedVRAM: data.vram,
+    };
+  }
+  if (deviceKey.startsWith("mobile:")) {
+    const name = deviceKey.slice(7);
+    const data = MOBILE_GPU_DB[name];
+    if (!data) return null;
+    return {
+      device: deviceKey,
+      memoryBandwidth: data.bw,
+      isAppleSilicon: false,
+      isMobile: true,
+    };
+  }
+  return null;
+}
 
+export const RAM_OPTIONS = [2, 4, 6, 8, 12, 16, 18, 24, 32, 36, 48, 64, 96, 128, 192];
+export const BW_OPTIONS = [50, 68, 100, 120, 150, 153, 200, 224, 273, 288, 300, 307, 360, 408, 448, 504, 546, 614, 672, 768, 819, 960, 1008, 1792, 2039, 3350];
 export function buildSelectOptions(presets: number[], detected: number | null): number[] {
   const set = new Set(presets);
   if (detected !== null && detected > 0) set.add(detected);

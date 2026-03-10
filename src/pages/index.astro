@@ -200,17 +200,17 @@ function timeAgo(dateStr: string | null): string {
       <!-- View mode toggle -->
       <button id="view-toggle" class="filter-select hidden items-center gap-1.5 cursor-pointer sm:inline-flex" title="Toggle view mode">
         <!-- Simple: grid icon -->
-        <IconGrid id="view-icon-simple" class="h-3 w-3" />
+        <IconGrid id="view-icon-simple" class="hidden h-3 w-3" />
         <!-- Advanced: detailed grid icon -->
         <IconGridDots id="view-icon-advanced" class="hidden h-3 w-3" />
         <!-- List: rows icon -->
-        <IconList id="view-icon-list" class="hidden h-3 w-3" />
-        <span id="view-label" class="text-[10px]">Simple</span>
+        <IconList id="view-icon-list" class="h-3 w-3" />
+        <span id="view-label" class="text-[10px]">List</span>
       </button>
     </div>
 
     <!-- Popular models -->
-    <div id="models-grid" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div id="models-grid" class="grid grid-cols-1 list-view">
       {featuredModels.map((model) => (
         <a href={`/model/${model.id}`} class="block">
           <article
@@ -224,7 +224,7 @@ function timeAgo(dateStr: string | null): string {
             data-context={model.contextLength}
             data-release={model.releaseDate || ""}
             data-featured="true"
-            class="model-card group relative flex h-full flex-col rounded-lg border border-edge/60 bg-black transition-all hover:border-accent/30 hover:bg-surface-hover"
+            class="model-card list-mode group relative flex h-full flex-col rounded-lg border border-edge/60 bg-black transition-all hover:border-accent/30 hover:bg-surface-hover"
           >
             <div data-card-body class="flex flex-col p-4 pb-3">
               <div data-card-top class="min-w-0">
@@ -256,7 +256,7 @@ function timeAgo(dateStr: string | null): string {
                     </span>
                   </div>
                   {model.releaseDate && (
-                    <span class="shrink-0 font-mono text-[9px] text-muted/60">{timeAgo(model.releaseDate)}</span>
+                    <span data-time-ago class="shrink-0 font-mono text-[9px] text-muted/60">{timeAgo(model.releaseDate)}</span>
                   )}
                 </div>
                 <p data-card-provider class="mt-0.5 font-mono text-[11px] text-muted">
@@ -332,7 +332,7 @@ function timeAgo(dateStr: string | null): string {
     </div>
 
     <!-- Rest of models -->
-    <div id="models-grid-rest" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div id="models-grid-rest" class="grid grid-cols-1 list-view">
       {otherModels.map((model) => (
         <a href={`/model/${model.id}`} class="block">
           <article
@@ -345,7 +345,7 @@ function timeAgo(dateStr: string | null): string {
             data-provider={model.provider}
             data-context={model.contextLength}
             data-release={model.releaseDate || ""}
-            class="model-card group relative flex h-full flex-col rounded-lg border border-edge/60 bg-black transition-all hover:border-accent/30 hover:bg-surface-hover"
+            class="model-card list-mode group relative flex h-full flex-col rounded-lg border border-edge/60 bg-black transition-all hover:border-accent/30 hover:bg-surface-hover"
           >
             <div data-card-body class="flex flex-col p-4 pb-3">
               <div data-card-top class="min-w-0">
@@ -374,7 +374,7 @@ function timeAgo(dateStr: string | null): string {
                     )}
                   </div>
                   {model.releaseDate && (
-                    <span class="shrink-0 font-mono text-[9px] text-muted/60">{timeAgo(model.releaseDate)}</span>
+                    <span data-time-ago class="shrink-0 font-mono text-[9px] text-muted/60">{timeAgo(model.releaseDate)}</span>
                   )}
                 </div>
                 <p data-card-provider class="mt-0.5 font-mono text-[11px] text-muted">
@@ -791,8 +791,8 @@ function timeAgo(dateStr: string | null): string {
         else if (toks >= 5) tokEl.className = "font-mono text-[11px] text-maybe/70";
         else tokEl.className = "font-mono text-[11px] text-cannot-run";
       } else {
-        tokEl.textContent = "";
-        tokEl.className = "font-mono text-[11px] text-muted";
+        tokEl.textContent = "0 tok/s";
+        tokEl.className = "font-mono text-[11px] text-cannot-run/70";
       }
     }
 
@@ -1053,7 +1053,7 @@ function timeAgo(dateStr: string | null): string {
   // ── View Mode Toggle ────────────────────────────────────
 
   type ViewMode = "simple" | "advanced" | "list";
-  let viewMode: ViewMode = "simple";
+  let viewMode: ViewMode = "list";
 
   function applyViewMode() {
     const grids = [$("#models-grid"), $("#models-grid-rest")];
@@ -1180,7 +1180,7 @@ function timeAgo(dateStr: string | null): string {
     activeProviderFilter = "all";
     searchQuery = "";
     currentSort = "score";
-    viewMode = "simple";
+    viewMode = "list";
 
     setupQuantButtons();
     setupFilters();
@@ -1274,7 +1274,7 @@ function timeAgo(dateStr: string | null): string {
   .model-card.list-mode [data-card-body] {
     flex-direction: row;
     align-items: center;
-    gap: 1rem;
+    gap: 2rem;
     padding: 0.625rem 1rem;
     flex: 1;
     min-width: 0;
@@ -1285,15 +1285,25 @@ function timeAgo(dateStr: string | null): string {
     min-width: 0;
   }
 
+  .model-card.list-mode [data-time-ago] {
+    min-width: 5.5rem;
+    text-align: right;
+  }
+
   .model-card.list-mode [data-card-stats] {
     margin-top: 0;
     white-space: nowrap;
+    width: 15rem;
+    flex-shrink: 0;
+    justify-content: flex-end;
   }
 
   .model-card.list-mode [data-card-footer] {
     margin-top: 0;
     padding: 0 1rem 0 0;
     gap: 0.5rem;
+    width: 10rem;
+    flex-shrink: 0;
   }
 
   /* List mode grid: remove gap, add top border */

@@ -336,6 +336,7 @@ import IconCopy from "../icons/copy.svg";
   document.body.appendChild(_measureEl);
 
   function fitSelectWidth(select: HTMLSelectElement) {
+    if (!_measureEl.isConnected) document.body.appendChild(_measureEl);
     const text = select.options[select.selectedIndex]?.textContent ?? "";
     _measureEl.style.font = getComputedStyle(select).font;
     _measureEl.textContent = text;

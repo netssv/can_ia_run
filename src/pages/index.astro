@@ -515,6 +515,7 @@ function timeAgo(dateStr: string | null): string {
   document.body.appendChild(_measureEl);
 
   function fitSelectWidth(select: HTMLSelectElement) {
+    if (!_measureEl.isConnected) document.body.appendChild(_measureEl);
     const text = select.options[select.selectedIndex]?.textContent ?? "";
     _measureEl.style.font = getComputedStyle(select).font;
     _measureEl.textContent = text;
@@ -1304,6 +1305,24 @@ function timeAgo(dateStr: string | null): string {
     gap: 0.5rem;
     width: 10rem;
     flex-shrink: 0;
+  }
+
+  @media (max-width: 1023px) {
+    .model-card.list-mode [data-status-dot],
+    .model-card.list-mode [data-status-label] {
+      display: none !important;
+    }
+
+    .model-card.list-mode [data-card-footer] {
+      width: auto;
+      min-width: 0;
+    }
+  }
+
+  @media (max-width: 639px) {
+    .model-card.list-mode [data-time-ago] {
+      display: none !important;
+    }
   }
 
   /* List mode grid: remove gap, add top border */

@@ -1,15 +1,45 @@
 ---
-import Logo from "../icons/logo.svg";
+import Logo from "@/icons/logo.svg";
 const currentPath = Astro.url.pathname;
+
+const buildDate = new Date();
+const now = new Date();
+const diffMs = now.getTime() - buildDate.getTime();
+const diffMins = Math.floor(diffMs / 60_000);
+const diffHours = Math.floor(diffMs / 3_600_000);
+const diffDays = Math.floor(diffMs / 86_400_000);
+
+function getRelativeTime(mins: number, hours: number, days: number) {
+  if (days > 0) return `${days}d ago`;
+  if (hours > 0) return `${hours}h ago`;
+  if (mins > 0) return `${mins}m ago`;
+  return "just now";
+}
+
+const updatedAgo = getRelativeTime(diffMins, diffHours, diffDays);
 ---
 
 <nav class="border-b border-edge/40">
   <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-2.5 sm:px-6">
-    <a href="/" class="flex items-center gap-1 font-pixel text-xs text-accent transition-colors hover:text-primary">
-      <Logo class="size-3" />
-      CanIRun.ai
-    </a>
+    <div class="flex items-center gap-2">
+      <a href="/" class="flex items-center gap-1 font-pixel text-xs text-accent transition-colors hover:text-primary">
+        <Logo class="size-3" />
+        CanIRun.ai
+      </a>
+      <span class="font-mono text-[10px] text-primary/40" title={buildDate.toISOString()}>
+        updated {updatedAgo}
+      </span>
+    </div>
     <div class="flex items-center gap-4 font-mono text-[11px]">
+      <a
+        href="/compare"
+        class:list={[
+          "transition-colors hover:text-accent",
+          currentPath === "/compare" ? "text-primary" : "text-primary/70",
+        ]}
+      >
+        [compare]
+      </a>
       <a
         href="/tier"
         class:list={[

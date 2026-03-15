@@ -1,31 +1,31 @@
 ---
-import Layout from "../../layouts/Layout.astro"
-import NavHeader from "../../components/NavHeader.astro"
-import { models } from "../../data/models"
-import hfStats from "../../data/hf-stats.json"
-import IconArrowLeft from "../../icons/arrow-left.svg"
-import IconMoe from "../../icons/moe.svg"
-import IconTool from "../../icons/tool.svg"
-import IconThinking from "../../icons/thinking.svg"
-import IconVision from "../../icons/vision.svg"
-import IconStar from "../../icons/star.svg"
-import IconHuggingFace from "../../icons/logo-huggingface.svg"
-import IconOllama from "../../icons/logo-ollama.svg"
-import IconDownload from "../../icons/download.svg"
-import IconHeart from "../../icons/heart.svg"
-import IconCalendar from "../../icons/calendar.svg"
-import IconCpu from "../../icons/cpu.svg"
-import IconHelp from "../../icons/help.svg"
-import IconTerminal from "../../icons/terminal.svg"
-import IconCopy from "../../icons/copy.svg"
-import IconEdit from "../../icons/edit.svg"
-import IconBarChart from "../../icons/bar-chart.svg"
-import IconChat from "../../icons/chat.svg"
-import IconCode from "../../icons/code.svg"
-import IconEdgeDevice from "../../icons/edge-device.svg"
-import IconMultilingual from "../../icons/multilingual.svg"
-import IconSearch from "../../icons/search.svg"
-import IconLmStudio from "../../icons/logo-lmstudio.svg"
+import Layout from "@/layouts/Layout.astro"
+import NavHeader from "@/components/NavHeader.astro"
+import { models } from "@/data/models"
+import hfStats from "@/data/hf-stats.json"
+import IconArrowLeft from "@/icons/arrow-left.svg"
+import IconMoe from "@/icons/moe.svg"
+import IconTool from "@/icons/tool.svg"
+import IconThinking from "@/icons/thinking.svg"
+import IconVision from "@/icons/vision.svg"
+import IconStar from "@/icons/star.svg"
+import IconHuggingFace from "@/icons/logo-huggingface.svg"
+import IconOllama from "@/icons/logo-ollama.svg"
+import IconDownload from "@/icons/download.svg"
+import IconHeart from "@/icons/heart.svg"
+import IconCalendar from "@/icons/calendar.svg"
+import IconCpu from "@/icons/cpu.svg"
+import IconHelp from "@/icons/help.svg"
+import IconTerminal from "@/icons/terminal.svg"
+import IconCopy from "@/icons/copy.svg"
+import IconEdit from "@/icons/edit.svg"
+import IconBarChart from "@/icons/bar-chart.svg"
+import IconChat from "@/icons/chat.svg"
+import IconCode from "@/icons/code.svg"
+import IconEdgeDevice from "@/icons/edge-device.svg"
+import IconMultilingual from "@/icons/multilingual.svg"
+import IconSearch from "@/icons/search.svg"
+import IconLmStudio from "@/icons/logo-lmstudio.svg"
 
 export function getStaticPaths() {
   return models.map((model) => ({
@@ -538,10 +538,11 @@ const USE_CASE_ICONS: Record<string, any> = {
     BW_OPTIONS,
     GPU_DB,
     APPLE_DB,
-    MOBILE_GPU_DB,
     GRADES,
-  } from "../../lib/hardware"
-  import type { HardwareInfo, HardwareOverrides } from "../../lib/hardware"
+  } from "@/lib/hardware"
+  import type { HardwareInfo, HardwareOverrides } from "@/lib/hardware"
+  import { fitSelectWidth, buildGroupedDeviceOptions } from "@/lib/hardware-ui"
+  import { DEVICE_CATEGORY_ORDER } from "@/lib/hardware"
 
   document.addEventListener('astro:page-load', () => {
     const copyBtn = document.getElementById("copy-ollama")
@@ -564,17 +565,6 @@ const USE_CASE_ICONS: Record<string, any> = {
     const paramsBillions = parseFloat(container.dataset.params || "0")
     let detectedHW: HardwareInfo
     let currentHW: HardwareInfo
-
-    const _measureEl = document.createElement("span")
-    _measureEl.style.cssText = "visibility:hidden;position:absolute;white-space:nowrap;pointer-events:none"
-    document.body.appendChild(_measureEl)
-
-    function fitSelectWidth(select: HTMLSelectElement) {
-      const text = select.options[select.selectedIndex]?.textContent ?? ""
-      _measureEl.style.font = getComputedStyle(select).font
-      _measureEl.textContent = text
-      select.style.width = `${_measureEl.offsetWidth + 28}px`
-    }
 
     function buildSelectHTML(id: string, presets: number[], detected: number | null, override: number | undefined, formatter: (v: number) => string): string {
       const options = buildSelectOptions(presets, detected)
@@ -606,55 +596,12 @@ const USE_CASE_ICONS: Record<string, any> = {
       })
     }
 
-    function getGPUCategory(name: string): string {
-      if (name.startsWith("RTX 50")) return "NVIDIA RTX 50"
-      if (name.startsWith("RTX 40")) return "NVIDIA RTX 40"
-      if (name.startsWith("RTX 30")) return "NVIDIA RTX 30"
-      if (name.startsWith("RTX 20")) return "NVIDIA RTX 20"
-      if (name.startsWith("RTX A") || name.startsWith("Quadro")) return "NVIDIA Pro"
-      if (/^(A100|H100|L40S|L4|T4)$/.test(name)) return "NVIDIA Datacenter"
-      if (name.startsWith("GTX 16")) return "NVIDIA GTX 16"
-      if (name.startsWith("GTX 10")) return "NVIDIA GTX 10"
-      if (name.startsWith("GTX 9")) return "NVIDIA GTX 9"
-      if (name.startsWith("RX 9")) return "AMD RX 9000"
-      if (name.startsWith("RX 7")) return "AMD RX 7000"
-      if (name.startsWith("RX 6")) return "AMD RX 6000"
-      if (name.startsWith("RX 5")) return "AMD RX 5000"
-      if (name.startsWith("RX") || name.startsWith("Vega")) return "AMD Older"
-      if (name.startsWith("Arc")) return "Intel Arc"
-      if (name.startsWith("Iris") || name.startsWith("UHD")) return "Intel Integrated"
-      return "Other"
-    }
-
-    const DEVICE_CATEGORY_ORDER = [
-      "Apple Silicon", "NVIDIA RTX 50", "NVIDIA RTX 40", "NVIDIA RTX 30", "NVIDIA RTX 20",
-      "NVIDIA GTX 16", "NVIDIA GTX 10", "NVIDIA GTX 9", "NVIDIA Pro", "NVIDIA Datacenter",
-      "AMD RX 9000", "AMD RX 7000", "AMD RX 6000", "AMD RX 5000", "AMD Older",
-      "Intel Arc", "Intel Integrated", "Mobile",
-    ]
-
     function buildDeviceSelectHTML(detectedName: string, storedDevice: string | undefined): string {
       let html = `<select id="hw-device-select" class="hw-editable-select text-primary max-w-[180px]">`
       html += `<option value="auto">${detectedName} ✱</option>`
       html += `<option value="custom"${storedDevice === "custom" ? " selected" : ""}>Custom</option>`
 
-      const grouped: Record<string, { value: string; label: string }[]> = {}
-      for (const [chip, data] of Object.entries(APPLE_DB)) {
-        const cat = "Apple Silicon"
-        if (!grouped[cat]) grouped[cat] = []
-        const label = chip.split(" ").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
-        grouped[cat].push({ value: `apple:${chip}`, label: `${label} (${data.ram} GB)` })
-      }
-      for (const [name, data] of Object.entries(GPU_DB)) {
-        const cat = getGPUCategory(name)
-        if (!grouped[cat]) grouped[cat] = []
-        grouped[cat].push({ value: `gpu:${name}`, label: `${name} (${data.vram} GB)` })
-      }
-      for (const [name] of Object.entries(MOBILE_GPU_DB)) {
-        const cat = "Mobile"
-        if (!grouped[cat]) grouped[cat] = []
-        grouped[cat].push({ value: `mobile:${name}`, label: name })
-      }
+      const grouped = buildGroupedDeviceOptions()
       for (const cat of DEVICE_CATEGORY_ORDER) {
         const items = grouped[cat]
         if (!items?.length) continue

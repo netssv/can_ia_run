@@ -1,6 +1,6 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
-import { models } from '../../data/models';
-import { renderOgImage, badge } from '../../lib/og';
+import { models } from '@/data/models';
+import { renderOgImage, badge } from '@/lib/og';
 
 export const getStaticPaths: GetStaticPaths = () =>
   models.map((model) => ({

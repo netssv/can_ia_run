@@ -1,9 +1,10 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import NavHeader from "../components/NavHeader.astro";
-import { models } from "../data/models";
-import IconDownload from "../icons/download.svg";
-import IconCopy from "../icons/copy.svg";
+import Layout from "@/layouts/Layout.astro";
+import NavHeader from "@/components/NavHeader.astro";
+import Footer from "@/components/Footer.astro";
+import { models } from "@/data/models";
+import IconDownload from "@/icons/download.svg";
+import IconCopy from "@/icons/copy.svg";
 ---
 
 <Layout title="Tier List — CanIRun.ai" description="See which AI models your machine can run, ranked in a classic tier list. Share your results.">
@@ -156,18 +157,14 @@ import IconCopy from "../icons/copy.svg";
       Based on Q4_K_M quantization. Your actual results may vary.
     </p>
 
-    <!-- Footer -->
-    <footer class="mt-16 text-center text-xs text-muted/60">
-      <p>
-        Built by <a href="https://midu.dev" target="_blank" rel="noopener" class="text-muted underline decoration-edge underline-offset-2 hover:text-primary">midudev</a> for the local AI community.
-      </p>
-    </footer>
+    <Footer />
   </main>
 </Layout>
 
 <script>
-  import { detectHardware, evaluateModelComplete, cleanGPUName, getDisplayName, getHardwareOverrides, saveHardwareOverrides, applyOverrides, getDeviceOverrides, buildSelectOptions, RAM_OPTIONS, BW_OPTIONS, GPU_DB, APPLE_DB, MOBILE_GPU_DB, GRADES } from "../lib/hardware";
-  import type { HardwareInfo, HardwareOverrides } from "../lib/hardware";
+  import { detectHardware, evaluateModelComplete, cleanGPUName, getDisplayName, getHardwareOverrides, saveHardwareOverrides, applyOverrides, getDeviceOverrides, RAM_OPTIONS, BW_OPTIONS, GRADES } from "@/lib/hardware";
+  import type { HardwareInfo, HardwareOverrides } from "@/lib/hardware";
+  import { fitSelectWidth, populateSelect, appendDeviceOptgroups } from "@/lib/hardware-ui";
 
   interface TierModel {
     id: string;
@@ -331,68 +328,6 @@ import IconCopy from "../icons/copy.svg";
   let currentHW: HardwareInfo;
   let modelsData: TierModel[] = [];
 
-  const _measureEl = document.createElement("span");
-  _measureEl.style.cssText = "visibility:hidden;position:absolute;white-space:nowrap;pointer-events:none";
-  document.body.appendChild(_measureEl);
-
-  function fitSelectWidth(select: HTMLSelectElement) {
-    if (!_measureEl.isConnected) document.body.appendChild(_measureEl);
-    const text = select.options[select.selectedIndex]?.textContent ?? "";
-    _measureEl.style.font = getComputedStyle(select).font;
-    _measureEl.textContent = text;
-    select.style.width = `${_measureEl.offsetWidth + 28}px`;
-  }
-
-  function populateSelect(
-    select: HTMLSelectElement,
-    presets: number[],
-    detected: number | null,
-    override: number | undefined,
-    formatter: (v: number) => string,
-  ) {
-    const options = buildSelectOptions(presets, detected);
-    if (override !== undefined && override > 0 && !options.includes(override)) {
-      options.push(override);
-      options.sort((a, b) => a - b);
-    }
-    select.innerHTML = "";
-    for (const v of options) {
-      const opt = document.createElement("option");
-      opt.value = String(v);
-      opt.textContent = formatter(v) + (v === detected ? " ✱" : "");
-      select.appendChild(opt);
-    }
-    select.value = String(override ?? detected ?? "");
-    fitSelectWidth(select);
-  }
-
-  function getGPUCategory(name: string): string {
-    if (name.startsWith("RTX 50")) return "NVIDIA RTX 50";
-    if (name.startsWith("RTX 40")) return "NVIDIA RTX 40";
-    if (name.startsWith("RTX 30")) return "NVIDIA RTX 30";
-    if (name.startsWith("RTX 20")) return "NVIDIA RTX 20";
-    if (name.startsWith("RTX A") || name.startsWith("Quadro")) return "NVIDIA Pro";
-    if (/^(A100|H100|L40S|L4|T4)$/.test(name)) return "NVIDIA Datacenter";
-    if (name.startsWith("GTX 16")) return "NVIDIA GTX 16";
-    if (name.startsWith("GTX 10")) return "NVIDIA GTX 10";
-    if (name.startsWith("GTX 9")) return "NVIDIA GTX 9";
-    if (name.startsWith("RX 9")) return "AMD RX 9000";
-    if (name.startsWith("RX 7")) return "AMD RX 7000";
-    if (name.startsWith("RX 6")) return "AMD RX 6000";
-    if (name.startsWith("RX 5")) return "AMD RX 5000";
-    if (name.startsWith("RX") || name.startsWith("Vega")) return "AMD Older";
-    if (name.startsWith("Arc")) return "Intel Arc";
-    if (name.startsWith("Iris") || name.startsWith("UHD")) return "Intel Integrated";
-    return "Other";
-  }
-
-  const DEVICE_CATEGORY_ORDER = [
-    "Apple Silicon", "NVIDIA RTX 50", "NVIDIA RTX 40", "NVIDIA RTX 30", "NVIDIA RTX 20",
-    "NVIDIA GTX 16", "NVIDIA GTX 10", "NVIDIA GTX 9", "NVIDIA Pro", "NVIDIA Datacenter",
-    "AMD RX 9000", "AMD RX 7000", "AMD RX 6000", "AMD RX 5000", "AMD Older",
-    "Intel Arc", "Intel Integrated", "Mobile",
-  ];
-
   function populateDeviceSelect(select: HTMLSelectElement, detectedName: string, storedDevice: string | undefined) {
     select.innerHTML = "";
     const autoOpt = document.createElement("option");
@@ -405,36 +340,8 @@ import IconCopy from "../icons/copy.svg";
     customOpt.textContent = "Custom";
     select.appendChild(customOpt);
 
-    const grouped: Record<string, { value: string; label: string }[]> = {};
-    for (const [chip, data] of Object.entries(APPLE_DB)) {
-      const cat = "Apple Silicon";
-      if (!grouped[cat]) grouped[cat] = [];
-      const label = chip.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-      grouped[cat].push({ value: `apple:${chip}`, label: `${label} (${data.ram} GB)` });
-    }
-    for (const [name, data] of Object.entries(GPU_DB)) {
-      const cat = getGPUCategory(name);
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push({ value: `gpu:${name}`, label: `${name} (${data.vram} GB)` });
-    }
-    for (const [name] of Object.entries(MOBILE_GPU_DB)) {
-      const cat = "Mobile";
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push({ value: `mobile:${name}`, label: name });
-    }
-    for (const cat of DEVICE_CATEGORY_ORDER) {
-      const items = grouped[cat];
-      if (!items?.length) continue;
-      const optgroup = document.createElement("optgroup");
-      optgroup.label = cat;
-      for (const item of items) {
-        const opt = document.createElement("option");
-        opt.value = item.value;
-        opt.textContent = item.label;
-        optgroup.appendChild(opt);
-      }
-      select.appendChild(optgroup);
-    }
+    appendDeviceOptgroups(select, storedDevice);
+
     select.value = storedDevice || "auto";
     select.disabled = false;
     select.classList.remove("text-muted");

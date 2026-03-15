@@ -1,6 +1,7 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import NavHeader from "../components/NavHeader.astro";
+import Layout from "@/layouts/Layout.astro";
+import NavHeader from "@/components/NavHeader.astro";
+import Footer from "@/components/Footer.astro";
 
 const PAYPAL_CLIENT_ID = "ARepW6o2yp0OO13yXEIRaWYJ_AlWzGVF2bGCdnQ2h54YFUyATFm892Ihpz2ZEy4iDocKllZz8RbwTLbb";
 ---
@@ -137,12 +138,7 @@ const PAYPAL_CLIENT_ID = "ARepW6o2yp0OO13yXEIRaWYJ_AlWzGVF2bGCdnQ2h54YFUyATFm892
       </p>
     </section>
 
-    <!-- Footer -->
-    <footer class="mt-16 text-center text-xs text-muted/60">
-      <p>
-        Built by <a href="https://midu.dev" target="_blank" rel="noopener" class="text-muted underline decoration-edge underline-offset-2 hover:text-primary">midudev</a> for the local AI community.
-      </p>
-    </footer>
+    <Footer />
   </main>
 </Layout>
 

@@ -1,10 +1,11 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import NavHeader from "../components/NavHeader.astro";
-import IconSearch from "../icons/search.svg";
-import IconArrowFlow from "../icons/arrow-flow.svg";
-import IconGpu from "../icons/gpu.svg";
-import IconBandwidth from "../icons/bandwidth.svg";
+import Layout from "@/layouts/Layout.astro";
+import NavHeader from "@/components/NavHeader.astro";
+import Footer from "@/components/Footer.astro";
+import IconSearch from "@/icons/search.svg";
+import IconArrowFlow from "@/icons/arrow-flow.svg";
+import IconGpu from "@/icons/gpu.svg";
+import IconBandwidth from "@/icons/bandwidth.svg";
 
 // Code snippets as raw strings to avoid Astro parsing curly braces
 const codeWebGL = `<span class="text-muted">// Get GPU renderer string</span>
@@ -449,11 +450,6 @@ const codeHF = `<span class="text-muted">// Fetch model stats from HuggingFace A
       </section>
     </div>
 
-    <!-- Footer -->
-    <footer class="mt-16 text-center text-xs text-muted/60">
-      <p>
-        Built by <a href="https://midu.dev" target="_blank" rel="noopener" class="text-muted underline decoration-edge underline-offset-2 hover:text-primary">midudev</a> for the local AI community.
-      </p>
-    </footer>
+    <Footer />
   </main>
 </Layout>

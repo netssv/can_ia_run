@@ -2,6 +2,13 @@
 import Logo from "@/icons/logo.svg";
 const currentPath = Astro.url.pathname;
 const buildDate = new Date();
+
+const links = [
+  { href: "/compare", label: "compare" },
+  { href: "/tier", label: "tier list" },
+  { href: "/docs", label: "docs" },
+  { href: "/why", label: "why" },
+];
 ---
 
 <nav class="border-b border-edge/40">
@@ -15,57 +22,124 @@ const buildDate = new Date();
         updated ...
       </time>
     </div>
-    <div class="flex items-center gap-4 font-mono text-[11px]">
-      <a
-        href="/compare"
-        class:list={[
-          "transition-colors hover:text-accent",
-          currentPath === "/compare" ? "text-primary" : "text-primary/70",
-        ]}
-      >
-        [compare]
-      </a>
-      <a
-        href="/tier"
-        class:list={[
-          "transition-colors hover:text-accent",
-          currentPath === "/tier" ? "text-primary" : "text-primary/70",
-        ]}
-      >
-        [tier list]
-      </a>
-      <a
-        href="/docs"
-        class:list={[
-          "transition-colors hover:text-accent",
-          currentPath === "/docs" ? "text-primary" : "text-primary/70",
-        ]}
-      >
-        [docs]
-      </a>
-      <a
-        href="/why"
-        class:list={[
-          "transition-colors hover:text-accent",
-          currentPath === "/why" ? "text-primary" : "text-primary/70",
-        ]}
-      >
-        [why]
-      </a>
-      <!-- <a
-        href="/advertise"
-        class:list={[
-          "transition-colors hover:text-accent",
-          currentPath === "/advertise" ? "text-primary" : "text-primary/70",
-        ]}
-      >
-        [advertise]
-      </a> -->
+
+    {/* Desktop links */}
+    <div class="hidden items-center gap-4 font-mono text-[11px] sm:flex">
+      {links.map(({ href, label }) => (
+        <a
+          href={href}
+          class:list={[
+            "transition-colors hover:text-accent",
+            currentPath === href ? "text-primary" : "text-primary/70",
+          ]}
+        >
+          [{label}]
+        </a>
+      ))}
     </div>
+
+    {/* Mobile hamburger */}
+    <button
+      id="menu-toggle"
+      class="flex size-8 items-center justify-center text-primary/70 transition-colors hover:text-accent sm:hidden"
+      aria-label="Open menu"
+      aria-expanded="false"
+    >
+      <svg class="size-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <line x1="3" y1="5" x2="17" y2="5" />
+        <line x1="3" y1="10" x2="17" y2="10" />
+        <line x1="3" y1="15" x2="17" y2="15" />
+      </svg>
+    </button>
   </div>
 </nav>
 
+{/* Fullscreen mobile menu */}
+<div
+  id="mobile-menu"
+  class="fixed inset-0 z-50 flex flex-col bg-surface transition-all duration-300 ease-out"
+  style="opacity:0;visibility:hidden;transform:translateY(-8px)"
+  aria-hidden="true"
+>
+  <div class="flex items-center justify-between px-4 py-2.5">
+    <a href="/" class="flex items-center gap-1 font-pixel text-xs text-accent transition-colors hover:text-primary">
+      <Logo class="size-3" />
+      CanIRun.ai
+    </a>
+    <button
+      id="menu-close"
+      class="flex size-8 items-center justify-center text-primary/70 transition-colors hover:text-accent"
+      aria-label="Close menu"
+    >
+      <svg class="size-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <line x1="4" y1="4" x2="16" y2="16" />
+        <line x1="16" y1="4" x2="4" y2="16" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="flex flex-1 flex-col items-center justify-center gap-6">
+    {links.map(({ href, label }) => (
+      <a
+        href={href}
+        class:list={[
+          "mobile-menu-link font-mono text-2xl transition-colors hover:text-accent",
+          currentPath === href ? "text-accent" : "text-primary/70",
+        ]}
+      >
+        [{label}]
+      </a>
+    ))}
+  </div>
+
+  <div class="pb-8 text-center font-mono text-[11px] text-primary/30">
+    esc to close
+  </div>
+</div>
+
 <script>
+  function initNavHeader() {
+    const toggle = document.getElementById("menu-toggle");
+    const menu = document.getElementById("mobile-menu");
+    const close = document.getElementById("menu-close");
+    if (!toggle || !menu || !close) return;
+
+    function open() {
+      menu!.style.visibility = "visible";
+      requestAnimationFrame(() => {
+        menu!.style.opacity = "1";
+        menu!.style.transform = "translateY(0)";
+      });
+      toggle!.setAttribute("aria-expanded", "true");
+      menu!.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    }
+
+    function shut() {
+      menu!.style.opacity = "0";
+      menu!.style.transform = "translateY(-8px)";
+      toggle!.setAttribute("aria-expanded", "false");
+      menu!.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      setTimeout(() => {
+        menu!.style.visibility = "hidden";
+      }, 300);
+    }
+
+    toggle.addEventListener("click", open);
+    close.addEventListener("click", shut);
+
+    menu.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", shut);
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && menu!.getAttribute("aria-hidden") === "false") {
+        shut();
+      }
+    });
+  }
+
   function updateBuildTime() {
     const el = document.getElementById("build-time") as HTMLTimeElement | null;
     if (!el) return;
@@ -87,5 +161,8 @@ const buildDate = new Date();
     el.textContent = `updated ${relative}`;
   }
 
-  document.addEventListener("astro:page-load", updateBuildTime);
+  document.addEventListener("astro:page-load", () => {
+    updateBuildTime();
+    initNavHeader();
+  });
 </script>

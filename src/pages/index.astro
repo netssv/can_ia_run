@@ -2,7 +2,7 @@
 import Layout from "@/layouts/Layout.astro";
 import NavHeader from "@/components/NavHeader.astro";
 import Footer from "@/components/Footer.astro";
-import { models, isCommercialLicense, LICENSE_LIST } from "@/data/models";
+import { models, isCommercialLicense, getLicenseTier, LICENSE_LIST } from "@/data/models";
 import IconCpu from "@/icons/cpu.svg";
 import IconRam from "@/icons/ram.svg";
 import IconGpu from "@/icons/gpu.svg";
@@ -260,37 +260,50 @@ function timeAgo(dateStr: string | null): string {
                     <h3 class="truncate font-pixel text-base text-primary" transition:name={`model-title-${model.id}`}>{model.name}</h3>
                     <span data-badges class="inline-flex items-center gap-1 shrink-0">
                       {model.architecture === "moe" && (
-                        <span class="shrink-0 rounded border border-info/20 bg-info/5 p-0.5 text-info" title="Mixture of Experts">
+                        <span class="shrink-0 rounded border border-info/20 bg-info/5 p-0.5 text-info h-5 w-5 inline-flex items-center justify-center" title="Mixture of Experts">
                           <IconMoe class="h-3 w-3" />
                         </span>
                       )}
                       {model.tools && (
-                        <span class="shrink-0 rounded border border-purple-400/30 bg-purple-400/10 p-0.5 text-purple-400" title="Tool Use">
+                        <span class="shrink-0 rounded border border-purple-400/30 bg-purple-400/10 p-0.5 text-purple-400 h-5 w-5 inline-flex items-center justify-center" title="Tool Use">
                           <IconTool class="h-3 w-3" />
                         </span>
                       )}
                       {model.thinking && (
-                        <span class="shrink-0 rounded border border-sky-400/30 bg-sky-400/10 p-0.5 text-sky-400" title="Thinking / Reasoning">
+                        <span class="shrink-0 rounded border border-sky-400/30 bg-sky-400/10 p-0.5 text-sky-400 h-5 w-5 inline-flex items-center justify-center" title="Thinking / Reasoning">
                           <IconThinking class="h-3 w-3" />
                         </span>
                       )}
                       {model.useCase.includes("vision") && (
-                        <span class="shrink-0 rounded border border-rose-400/30 bg-rose-400/10 p-0.5 text-rose-400" title="Vision">
+                        <span class="shrink-0 rounded border border-rose-400/30 bg-rose-400/10 p-0.5 text-rose-400 h-5 w-5 inline-flex items-center justify-center" title="Vision">
                           <IconVision class="h-3 w-3" />
                         </span>
                       )}
-                      <span class="shrink-0 rounded border border-yellow-400/30 bg-yellow-400/10 p-0.5 text-yellow-400" title="Popular">
+                      <span class="shrink-0 rounded border border-yellow-400/30 bg-yellow-400/10 p-0.5 text-yellow-400 h-5 w-5 inline-flex items-center justify-center" title="Popular">
                         <IconStar class="h-3 w-3" />
                       </span>
-                      {model.license && (
-                        <span
-                          class={`hidden lg:inline-flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-[11px] leading-none ${isCommercialLicense(model.license) ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-400" : "border-edge/40 bg-surface-card text-muted"}`}
-                          title={isCommercialLicense(model.license) ? `${model.license} — Commercial use allowed` : model.license}
-                        >
-                          <IconLicense class="h-2.5 w-2.5" />
-                          {model.license}
-                        </span>
-                      )}
+                      {model.license && (() => {
+                        const tier = getLicenseTier(model.license);
+                        const colors = tier === "open"
+                          ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-400"
+                          : tier === "partial"
+                            ? "border-amber-400/30 bg-amber-400/10 text-amber-400"
+                            : "border-orange-400/30 bg-orange-400/10 text-orange-400";
+                        const hint = tier === "open"
+                          ? `${model.license} — Fully open, commercial use allowed`
+                          : tier === "partial"
+                            ? `${model.license} — Commercial with conditions`
+                            : `${model.license} — Restrictive license`;
+                        return (
+                          <span
+                            class={`hidden lg:inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[11px] leading-none ${colors}`}
+                            title={hint}
+                          >
+                            <IconLicense class="h-2.5 w-2.5 shrink-0" />
+                            {model.license}
+                          </span>
+                        );
+                      })()}
                     </span>
                   </div>
                   {model.releaseDate && (
@@ -388,34 +401,47 @@ function timeAgo(dateStr: string | null): string {
                     <h3 class="truncate font-pixel text-base text-primary" transition:name={`model-title-${model.id}`}>{model.name}</h3>
                     <span data-badges class="inline-flex items-center gap-1 shrink-0">
                       {model.architecture === "moe" && (
-                        <span class="shrink-0 rounded border border-info/20 bg-info/5 p-0.5 text-info" title="Mixture of Experts">
+                        <span class="shrink-0 rounded border border-info/20 bg-info/5 p-0.5 text-info h-5 w-5 inline-flex items-center justify-center" title="Mixture of Experts">
                           <IconMoe class="h-3 w-3" />
                         </span>
                       )}
                       {model.tools && (
-                        <span class="shrink-0 rounded border border-purple-400/30 bg-purple-400/10 p-0.5 text-purple-400" title="Tool Use">
+                        <span class="shrink-0 rounded border border-purple-400/30 bg-purple-400/10 p-0.5 text-purple-400 h-5 w-5 inline-flex items-center justify-center" title="Tool Use">
                           <IconTool class="h-3 w-3" />
                         </span>
                       )}
                       {model.thinking && (
-                        <span class="shrink-0 rounded border border-sky-400/30 bg-sky-400/10 p-0.5 text-sky-400" title="Thinking / Reasoning">
+                        <span class="shrink-0 rounded border border-sky-400/30 bg-sky-400/10 p-0.5 text-sky-400 h-5 w-5 inline-flex items-center justify-center" title="Thinking / Reasoning">
                           <IconThinking class="h-3 w-3" />
                         </span>
                       )}
                       {model.useCase.includes("vision") && (
-                        <span class="shrink-0 rounded border border-rose-400/30 bg-rose-400/10 p-0.5 text-rose-400" title="Vision">
+                        <span class="shrink-0 rounded border border-rose-400/30 bg-rose-400/10 p-0.5 text-rose-400 h-5 w-5 inline-flex items-center justify-center" title="Vision">
                           <IconVision class="h-3 w-3" />
                         </span>
                       )}
-                      {model.license && (
-                        <span
-                          class={`hidden lg:inline-flex items-center gap-1 rounded border px-1.5 py-0.5 font-mono text-[11px] leading-none ${isCommercialLicense(model.license) ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-400" : "border-edge/40 bg-surface-card text-muted"}`}
-                          title={isCommercialLicense(model.license) ? `${model.license} — Commercial use allowed` : model.license}
-                        >
-                          <IconLicense class="h-2.5 w-2.5" />
-                          {model.license}
-                        </span>
-                      )}
+                      {model.license && (() => {
+                        const tier = getLicenseTier(model.license);
+                        const colors = tier === "open"
+                          ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-400"
+                          : tier === "partial"
+                            ? "border-amber-400/30 bg-amber-400/10 text-amber-400"
+                            : "border-orange-400/30 bg-orange-400/10 text-orange-400";
+                        const hint = tier === "open"
+                          ? `${model.license} — Fully open, commercial use allowed`
+                          : tier === "partial"
+                            ? `${model.license} — Commercial with conditions`
+                            : `${model.license} — Restrictive license`;
+                        return (
+                          <span
+                            class={`hidden lg:inline-flex h-5 items-center gap-1 rounded border px-1.5 font-mono text-[11px] leading-none ${colors}`}
+                            title={hint}
+                          >
+                            <IconLicense class="h-2.5 w-2.5 shrink-0" />
+                            {model.license}
+                          </span>
+                        );
+                      })()}
                     </span>
                   </div>
                   {model.releaseDate && (

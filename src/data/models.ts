@@ -158,6 +158,21 @@ export function isCommercialLicense(license?: string): boolean {
   return COMMERCIAL_LICENSES.has(license);
 }
 
+export type LicenseTier = "open" | "partial" | "restricted";
+
+const OPEN_LICENSES = new Set(["Apache 2.0", "MIT", "CC BY 4.0"]);
+const PARTIAL_LICENSES = new Set([
+  "Gemma", "NVIDIA Open",
+  "Llama 3.1 Community", "Llama 3.2 Community", "Llama 3.3 Community", "Llama 4 Community",
+]);
+
+export function getLicenseTier(license?: string): LicenseTier {
+  if (!license) return "restricted";
+  if (OPEN_LICENSES.has(license)) return "open";
+  if (PARTIAL_LICENSES.has(license)) return "partial";
+  return "restricted";
+}
+
 export const LICENSE_LIST = [...new Set(
   STATIC_MODELS.map(m => m.license).filter(Boolean) as string[]
 )].sort();

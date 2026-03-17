@@ -7,7 +7,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "scrape": "bun run scripts/scrape-models.ts"
+    "scrape": "bun run scripts/scrape-models.ts",
+    "fetch:readmes": "bun run scripts/fetch-ollama-readmes.ts",
+    "test": "bun test"
   },
   "dependencies": {
     "@astrojs/sitemap": "3.7.1",

@@ -3,6 +3,7 @@ import Layout from "@/layouts/Layout.astro"
 import NavHeader from "@/components/NavHeader.astro"
 import { models, isCommercialLicense, getLicenseTier } from "@/data/models"
 import hfStats from "@/data/hf-stats.json"
+import ollamaReadmes from "@/data/ollama-readmes.json"
 import IconArrowLeft from "@/icons/arrow-left.svg"
 import IconMoe from "@/icons/moe.svg"
 import IconTool from "@/icons/tool.svg"
@@ -41,6 +42,7 @@ const stats = (hfStats as Record<string, { downloads: number; likes: number }>)[
 ]
 const downloads = stats?.downloads || 0
 const likes = stats?.likes || 0
+const readme = (ollamaReadmes as Record<string, string>)[model.id] || null
 
 function formatNum(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
@@ -264,12 +266,6 @@ const USE_CASE_ICONS: Record<string, any> = {
                 : model.contextLength
             } context
           </span>
-          {model.license && (
-            <span class="inline-flex items-center gap-1.5">
-              <IconLicense class="h-3.5 w-3.5 text-muted" />
-              <span class={isCommercialLicense(model.license) ? "text-emerald-400" : "text-secondary"}>{model.license}</span>
-            </span>
-          )}
         </div>
 
         <!-- Use cases -->
@@ -375,6 +371,14 @@ const USE_CASE_ICONS: Record<string, any> = {
             </table>
           </div>
         </section>
+
+        <!-- Ollama README -->
+        {readme && (
+          <section class="mb-8">
+            <h2 class="mb-4 font-pixel text-sm text-muted">About this model</h2>
+            <div class="model-readme rounded-lg border border-edge bg-surface-card/30 p-5 sm:p-6" set:html={readme} />
+          </section>
+        )}
       </div>
 
       <!-- RIGHT COLUMN — Install & compatibility -->
@@ -685,6 +689,26 @@ const USE_CASE_ICONS: Record<string, any> = {
         ? `<div class="flex items-center justify-between"><span class="text-muted" data-tooltip="GB/s — How fast data moves to the processor. Higher = faster inference" data-tooltip-pos="bottom" tabindex="0" style="cursor:help">Bandwidth</span>${buildSelectHTML("hw-bw-select", BW_OPTIONS, detectedHW.memoryBandwidth, overrides.memoryBandwidth ?? effectiveBw, (v) => `~${v} GB/s`)}</div>`
         : ""
 
+      let sysramRow = ""
+      if (!hw.isMobile) {
+        if (hw.isAppleSilicon) {
+          sysramRow = `<div class="flex items-center justify-between"><span class="text-muted" data-tooltip="Unified memory — Apple Silicon shares RAM between CPU and GPU. No separate system RAM available for offloading" data-tooltip-pos="bottom" tabindex="0" style="cursor:help">RAM</span><span class="text-primary opacity-50">${hw.totalUsableRAM ?? "—"} GB</span></div>`
+        } else {
+          const raw = detectedHW.deviceMemoryRaw
+          const isGte8 = raw === null || raw >= 8
+          const selected = overrides.systemRAM ?? hw.systemRAM ?? 16
+          let opts = `<select id="hw-sysram-select" class="hw-editable-select text-primary">`
+          opts += `<option value="16"${selected === 16 ? " selected" : ""}>${isGte8 ? "≥8 GB ✱" : "≥8 GB"}</option>`
+          opts += `<option value="4"${selected === 4 ? " selected" : ""}>${!isGte8 ? "<8 GB ✱" : "<8 GB"}</option>`
+          opts += `<option disabled>───</option>`
+          for (const v of [8, 16, 32, 64, 128]) {
+            opts += `<option value="${v}"${selected === v ? " selected" : ""}>${v} GB</option>`
+          }
+          opts += `</select>`
+          sysramRow = `<div class="flex items-center justify-between"><span class="text-muted" data-tooltip="System RAM — used for CPU offloading when model doesn't fit in VRAM. More RAM = bigger models via offloading (slower)" data-tooltip-pos="bottom" tabindex="0" style="cursor:help">RAM</span>${opts}</div>`
+        }
+      }
+
       container.innerHTML = `
         <div class="flex items-center justify-between">
           <span class="text-muted">Device</span>
@@ -694,6 +718,7 @@ const USE_CASE_ICONS: Record<string, any> = {
           <span class="text-muted" data-tooltip="Video memory available for loading models. On Apple Silicon/iGPU, shared with system RAM" data-tooltip-pos="bottom" tabindex="0" style="cursor:help">VRAM</span>
           ${ramSelect}
         </div>
+        ${sysramRow}
         ${bwRow}
         <div class="mt-2 flex items-center justify-between border-t border-edge pt-2">
           <span class="text-muted">Q4_K_M</span>
@@ -706,10 +731,12 @@ const USE_CASE_ICONS: Record<string, any> = {
 
       const deviceEl = document.getElementById("hw-device-select") as HTMLSelectElement
       const ramEl = document.getElementById("hw-ram-select") as HTMLSelectElement
+      const sysramEl = document.getElementById("hw-sysram-select") as HTMLSelectElement
       const bwEl = document.getElementById("hw-bw-select") as HTMLSelectElement
 
       if (deviceEl) fitSelectWidth(deviceEl)
       if (ramEl) fitSelectWidth(ramEl)
+      if (sysramEl) fitSelectWidth(sysramEl)
       if (bwEl) fitSelectWidth(bwEl)
 
       deviceEl?.addEventListener("change", () => {
@@ -736,6 +763,7 @@ const USE_CASE_ICONS: Record<string, any> = {
       function handleFieldChange() {
         const newOverrides = getHardwareOverrides()
         if (ramEl?.value) newOverrides.ramGB = Number(ramEl.value)
+        if (sysramEl?.value) newOverrides.systemRAM = Number(sysramEl.value)
         if (bwEl?.value) newOverrides.memoryBandwidth = Number(bwEl.value)
         if (!newOverrides.device || newOverrides.device === "auto") {
           newOverrides.device = "custom"
@@ -747,6 +775,7 @@ const USE_CASE_ICONS: Record<string, any> = {
       }
 
       ramEl?.addEventListener("change", handleFieldChange)
+      sysramEl?.addEventListener("change", handleFieldChange)
       bwEl?.addEventListener("change", handleFieldChange)
     }
 

@@ -62,7 +62,7 @@ function timeAgo(dateStr: string | null): string {
       <span id="hw-gpu" class="inline-flex items-center gap-1.5 text-muted">
         <span data-tooltip="GPU detected via browser APIs — this is an estimate, actual specs may differ" data-tooltip-pos="bottom" tabindex="0" aria-label="GPU info" class="inline-flex shrink-0 flex-col items-center gap-1">
           <IconGpu class="h-4 w-4 text-muted" />
-          <span class="text-[9px] uppercase tracking-widest text-muted leading-none">GPU</span>
+          <span class="-mt-px text-[8px] uppercase tracking-widest text-muted leading-none">GPU</span>
         </span>
         <select id="hw-device-select" class="hw-editable-select" disabled>
           <option value="">detecting...</option>
@@ -73,7 +73,7 @@ function timeAgo(dateStr: string | null): string {
       <span id="hw-ram" class="inline-flex items-center gap-1.5 text-muted">
         <span data-tooltip="VRAM — Video memory available for loading models. On Apple Silicon/iGPUs, it's shared with system RAM" data-tooltip-pos="bottom" tabindex="0" aria-label="VRAM info" class="inline-flex shrink-0 flex-col items-center gap-1">
           <IconRam class="h-4 w-4 text-muted" />
-          <span id="hw-vram-label" class="text-[9px] uppercase tracking-widest text-muted leading-none">VRAM</span>
+          <span id="hw-vram-label" class="-mt-px text-[8px] uppercase tracking-widest text-muted leading-none">VRAM</span>
         </span>
         <select id="hw-ram-select" class="hw-editable-select" disabled>
           <option value="">—</option>
@@ -84,7 +84,7 @@ function timeAgo(dateStr: string | null): string {
         <span class="text-edge/40">|</span>
         <span data-tooltip="GB/s — Memory bandwidth. How fast data moves to the processor. Higher = faster inference" data-tooltip-pos="bottom" tabindex="0" aria-label="Bandwidth info" class="inline-flex shrink-0 flex-col items-center gap-1">
           <IconBandwidth class="h-4 w-4 text-muted" />
-          <span class="text-[9px] uppercase tracking-widest text-muted leading-none">BW</span>
+          <span class="-mt-px text-[8px] uppercase tracking-widest text-muted leading-none">BW</span>
         </span>
         <select id="hw-bw-select" class="hw-editable-select"></select>
       </span>
@@ -93,7 +93,7 @@ function timeAgo(dateStr: string | null): string {
         <span class="text-edge/40">|</span>
         <span data-tooltip="System RAM — used for CPU offloading when model doesn't fit in VRAM. More RAM = bigger models via offloading (slower)" data-tooltip-pos="bottom" tabindex="0" aria-label="System RAM info" class="inline-flex shrink-0 flex-col items-center gap-1">
           <IconRam class="h-4 w-4 text-muted" />
-          <span class="text-[9px] uppercase tracking-widest text-muted leading-none">RAM</span>
+          <span class="-mt-px text-[8px] uppercase tracking-widest text-muted leading-none">RAM</span>
         </span>
         <select id="hw-sysram-select" class="hw-editable-select"></select>
       </span>
@@ -102,7 +102,7 @@ function timeAgo(dateStr: string | null): string {
         <span class="text-edge/40">|</span>
         <span data-tooltip="GPU cores — more cores allow faster parallel computation for model inference" data-tooltip-pos="bottom" tabindex="0" aria-label="GPU cores info" class="inline-flex shrink-0 flex-col items-center gap-1">
           <IconCpu class="h-4 w-4 text-muted" />
-          <span class="text-[9px] uppercase tracking-widest text-muted leading-none">Cores</span>
+          <span class="-mt-px text-[8px] uppercase tracking-widest text-muted leading-none">CORES</span>
         </span>
         <span id="hw-gpu-cores-text" class="text-secondary"></span>
       </span>

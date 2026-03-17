@@ -16,6 +16,7 @@ import IconThinking from "@/icons/thinking.svg";
 import IconVision from "@/icons/vision.svg";
 import IconStar from "@/icons/star.svg";
 import IconLicense from "@/icons/license.svg";
+import { getModelTitleTransitionName } from "@/lib/view-transitions";
 
 interface Props {
   deviceKey?: string;
@@ -245,7 +246,7 @@ function timeAgo(dateStr: string | null): string {
             <div data-card-top class="min-w-0">
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2 min-w-0">
-                  <h3 class="truncate font-pixel text-base text-primary" transition:name={`model-title-${model.id}`}>{model.name}</h3>
+                  <h3 class="truncate font-pixel text-base text-primary" style={`view-transition-name: ${getModelTitleTransitionName(model.id)};`}>{model.name}</h3>
                   <span data-badges class="inline-flex items-center gap-1 shrink-0">
                     {model.architecture === "moe" && (
                       <span class="shrink-0 rounded border border-info/20 bg-info/5 p-0.5 text-info h-5 w-5 inline-flex items-center justify-center" title="Mixture of Experts">
@@ -387,7 +388,7 @@ function timeAgo(dateStr: string | null): string {
             <div data-card-top class="min-w-0">
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2 min-w-0">
-                  <h3 class="truncate font-pixel text-base text-primary" transition:name={`model-title-${model.id}`}>{model.name}</h3>
+                  <h3 class="truncate font-pixel text-base text-primary" style={`view-transition-name: ${getModelTitleTransitionName(model.id)};`}>{model.name}</h3>
                   <span data-badges class="inline-flex items-center gap-1 shrink-0">
                     {model.architecture === "moe" && (
                       <span class="shrink-0 rounded border border-info/20 bg-info/5 p-0.5 text-info h-5 w-5 inline-flex items-center justify-center" title="Mixture of Experts">

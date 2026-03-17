@@ -2,6 +2,7 @@
 import Layout from "@/layouts/Layout.astro"
 import NavHeader from "@/components/NavHeader.astro"
 import { models, isCommercialLicense, getLicenseTier } from "@/data/models"
+import { getLicenseSlug } from "@/data/licenses"
 import hfStats from "@/data/hf-stats.json"
 import ollamaReadmes from "@/data/ollama-readmes.json"
 import IconArrowLeft from "@/icons/arrow-left.svg"
@@ -180,13 +181,14 @@ const USE_CASE_ICONS: Record<string, any> = {
             }
             {
               model.license && (
-                <span
-                    class={`inline-flex h-7 items-center gap-1 rounded border px-2 font-mono text-xs ${licenseColors}`}
+                <a
+                  href={`/license/${getLicenseSlug(model.license)}`}
+                  class={`inline-flex h-7 items-center gap-1 rounded border px-2 font-mono text-xs transition-opacity hover:opacity-80 ${licenseColors}`}
                   title={licenseHint}
                 >
                   <IconLicense class="h-3 w-3" />
                   {model.license}
-                </span>
+                </a>
               )
             }
           </div>
@@ -527,7 +529,9 @@ const USE_CASE_ICONS: Record<string, any> = {
                 <div class="flex justify-between">
                   <dt class="text-muted">License</dt>
                   <dd class={isCommercialLicense(model.license) ? "text-emerald-400" : "text-primary"}>
-                    {model.license}
+                    <a href={`/license/${getLicenseSlug(model.license)}`} class="underline decoration-current/30 underline-offset-2 hover:decoration-current">
+                      {model.license}
+                    </a>
                     {isCommercialLicense(model.license) && (
                       <span class="ml-1 text-[10px] text-emerald-400/70">✓ Commercial</span>
                     )}

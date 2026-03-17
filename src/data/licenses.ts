@@ -1,0 +1,469 @@
+export interface LicenseInfo {
+  id: string;
+  name: string;
+  fullName: string;
+  tier: "open" | "partial" | "restricted";
+  summary: string;
+  url: string;
+  permissions: string[];
+  conditions: string[];
+  limitations: string[];
+  commercialUse: boolean;
+  note?: string;
+}
+
+function slug(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+const LICENSES: LicenseInfo[] = [
+  {
+    id: slug("Apache 2.0"),
+    name: "Apache 2.0",
+    fullName: "Apache License 2.0",
+    tier: "open",
+    summary: "A permissive license that allows commercial use, modification, and distribution with patent protection.",
+    url: "https://www.apache.org/licenses/LICENSE-2.0",
+    commercialUse: true,
+    permissions: [
+      "Commercial use — use the model in commercial products and services",
+      "Modification — modify, fine-tune, and create derivative works",
+      "Distribution — distribute copies and derivative works",
+      "Patent use — express grant of patent rights from contributors",
+      "Private use — use and modify privately without any obligation",
+    ],
+    conditions: [
+      "License and copyright notice — include the original license and copyright in distributions",
+      "State changes — document any significant changes made to the original work",
+    ],
+    limitations: [
+      "Trademark use — does not grant permission to use trade names, trademarks, or service marks",
+      "Liability — the license includes a limitation of liability",
+      "Warranty — the work is provided \"as is\" without warranty",
+    ],
+  },
+  {
+    id: slug("MIT"),
+    name: "MIT",
+    fullName: "MIT License",
+    tier: "open",
+    summary: "The most permissive common license. Do almost anything you want as long as you include the original copyright notice.",
+    url: "https://opensource.org/licenses/MIT",
+    commercialUse: true,
+    permissions: [
+      "Commercial use — use the model in commercial products and services",
+      "Modification — modify, fine-tune, and create derivative works",
+      "Distribution — distribute copies and derivative works freely",
+      "Private use — use and modify privately without any obligation",
+    ],
+    conditions: [
+      "License and copyright notice — include the original license and copyright notice in all copies",
+    ],
+    limitations: [
+      "Liability — the author is not liable for any damages",
+      "Warranty — the work is provided \"as is\" without warranty of any kind",
+    ],
+  },
+  {
+    id: slug("CC BY 4.0"),
+    name: "CC BY 4.0",
+    fullName: "Creative Commons Attribution 4.0 International",
+    tier: "open",
+    summary: "A permissive Creative Commons license that allows any use as long as you give appropriate credit.",
+    url: "https://creativecommons.org/licenses/by/4.0/",
+    commercialUse: true,
+    permissions: [
+      "Commercial use — use the work for commercial purposes",
+      "Modification — remix, adapt, and build upon the work",
+      "Distribution — copy and redistribute in any medium or format",
+      "Private use — use for any personal or internal purpose",
+    ],
+    conditions: [
+      "Attribution — give appropriate credit, provide a link to the license, and indicate if changes were made",
+      "No additional restrictions — you may not apply terms that restrict others from doing anything the license permits",
+    ],
+    limitations: [
+      "Liability — the licensor is not liable for any damages",
+      "Warranty — no warranties are given",
+      "Patent rights — does not grant patent rights",
+      "Trademark rights — does not grant trademark rights",
+    ],
+  },
+  {
+    id: slug("CC BY-NC 4.0"),
+    name: "CC BY-NC 4.0",
+    fullName: "Creative Commons Attribution-NonCommercial 4.0 International",
+    tier: "restricted",
+    summary: "Allows sharing and adaptation for non-commercial purposes only, with attribution required.",
+    url: "https://creativecommons.org/licenses/by-nc/4.0/",
+    commercialUse: false,
+    permissions: [
+      "Modification — remix, adapt, and build upon the work",
+      "Distribution — copy and redistribute in any medium or format",
+      "Private use — use for personal, research, or internal purposes",
+    ],
+    conditions: [
+      "Attribution — give appropriate credit, provide a link to the license, and indicate if changes were made",
+      "Non-commercial — may not use the work for commercial purposes",
+      "No additional restrictions — you may not apply additional legal or technological measures",
+    ],
+    limitations: [
+      "Commercial use — you cannot use this work for commercial purposes",
+      "Liability — the licensor is not liable for damages",
+      "Warranty — no warranties are given",
+      "Patent rights — does not grant patent rights",
+    ],
+  },
+  {
+    id: slug("Gemma"),
+    name: "Gemma",
+    fullName: "Gemma Terms of Use",
+    tier: "partial",
+    summary: "Google's custom license for Gemma models. Allows commercial use with restrictions on scale and acceptable use.",
+    url: "https://ai.google.dev/gemma/terms",
+    commercialUse: true,
+    permissions: [
+      "Commercial use — use in commercial products and services",
+      "Modification — fine-tune, distill, and create derivative models",
+      "Distribution — redistribute model weights and derivatives",
+      "Private use — use for any personal or internal purpose",
+    ],
+    conditions: [
+      "Acceptable use policy — must comply with Google's prohibited use policy",
+      "Attribution — must include \"Built with Gemma\" notice in derivative works",
+      "License notice — must include the license terms when distributing",
+      "Distribution terms — derivatives must be distributed under the same or compatible terms",
+    ],
+    limitations: [
+      "Harmful use — cannot use to develop weapons, surveillance tools, or generate illegal content",
+      "Misleading use — cannot use to create content that impersonates people without consent",
+      "Liability — Google disclaims all liability",
+      "Warranty — provided \"as is\" without warranty",
+    ],
+    note: "Google reserves the right to update the acceptable use policy. Review the full terms before production use.",
+  },
+  {
+    id: slug("NVIDIA Open"),
+    name: "NVIDIA Open",
+    fullName: "NVIDIA Open Model License",
+    tier: "partial",
+    summary: "NVIDIA's open license for AI models. Allows broad commercial use with an acceptable use policy.",
+    url: "https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-open-model-license/",
+    commercialUse: true,
+    permissions: [
+      "Commercial use — use in commercial products and services",
+      "Modification — fine-tune, modify, and create derivative works",
+      "Distribution — redistribute models and derivatives",
+      "Private use — use for any personal or internal purpose",
+    ],
+    conditions: [
+      "License notice — include the license and copyright notice in distributions",
+      "Acceptable use — comply with NVIDIA's acceptable use addendum",
+      "Attribution — provide attribution in derivative distributions",
+    ],
+    limitations: [
+      "Harmful use — cannot use for illegal activities or to cause harm",
+      "Reverse engineering — cannot reverse engineer NVIDIA proprietary components",
+      "Liability — NVIDIA disclaims all liability",
+      "Warranty — provided \"as is\" without warranty",
+    ],
+  },
+  {
+    id: slug("Llama 3.1 Community"),
+    name: "Llama 3.1 Community",
+    fullName: "Llama 3.1 Community License Agreement",
+    tier: "partial",
+    summary: "Meta's community license for Llama 3.1. Free for commercial use under 700M monthly active users.",
+    url: "https://github.com/meta-llama/llama-models/blob/main/models/llama3_1/LICENSE",
+    commercialUse: true,
+    permissions: [
+      "Commercial use — free for organizations with <700M monthly active users",
+      "Modification — fine-tune, modify, and create derivative works",
+      "Distribution — redistribute with license terms included",
+      "Private use — use for any personal or internal purpose",
+    ],
+    conditions: [
+      "Acceptable use policy — must comply with Meta's Acceptable Use Policy",
+      "License notice — include \"Built with Llama\" in derivative products",
+      "Scale limit — organizations with >700M MAU must request a license from Meta",
+      "Attribution — credit Meta as the creator of Llama in distributions",
+    ],
+    limitations: [
+      "Large-scale deployment — organizations exceeding 700M MAU need Meta's permission",
+      "Trademark use — does not grant rights to use Meta's trademarks",
+      "Harmful use — cannot use for illegal, harmful, or deceptive purposes",
+      "Liability — Meta disclaims all liability",
+      "Warranty — provided \"as is\" without warranty",
+    ],
+    note: "The 700M MAU threshold applies to the licensee's total products and services, not just those using Llama.",
+  },
+  {
+    id: slug("Llama 3.2 Community"),
+    name: "Llama 3.2 Community",
+    fullName: "Llama 3.2 Community License Agreement",
+    tier: "partial",
+    summary: "Meta's community license for Llama 3.2. Free for commercial use under 700M monthly active users.",
+    url: "https://github.com/meta-llama/llama-models/blob/main/models/llama3_2/LICENSE",
+    commercialUse: true,
+    permissions: [
+      "Commercial use — free for organizations with <700M monthly active users",
+      "Modification — fine-tune, modify, and create derivative works",
+      "Distribution — redistribute with license terms included",
+      "Private use — use for any personal or internal purpose",
+    ],
+    conditions: [
+      "Acceptable use policy — must comply with Meta's Acceptable Use Policy",
+      "License notice — include \"Built with Llama\" in derivative products",
+      "Scale limit — organizations with >700M MAU must request a license from Meta",
+      "Attribution — credit Meta as the creator of Llama in distributions",
+    ],
+    limitations: [
+      "Large-scale deployment — organizations exceeding 700M MAU need Meta's permission",
+      "Trademark use — does not grant rights to use Meta's trademarks",
+      "Harmful use — cannot use for illegal, harmful, or deceptive purposes",
+      "Liability — Meta disclaims all liability",
+      "Warranty — provided \"as is\" without warranty",
+    ],
+    note: "The 700M MAU threshold applies to the licensee's total products and services, not just those using Llama.",
+  },
+  {
+    id: slug("Llama 3.3 Community"),
+    name: "Llama 3.3 Community",
+    fullName: "Llama 3.3 Community License Agreement",
+    tier: "partial",
+    summary: "Meta's community license for Llama 3.3. Free for commercial use under 700M monthly active users.",
+    url: "https://github.com/meta-llama/llama-models/blob/main/models/llama3_3/LICENSE",
+    commercialUse: true,
+    permissions: [
+      "Commercial use — free for organizations with <700M monthly active users",
+      "Modification — fine-tune, modify, and create derivative works",
+      "Distribution — redistribute with license terms included",
+      "Private use — use for any personal or internal purpose",
+    ],
+    conditions: [
+      "Acceptable use policy — must comply with Meta's Acceptable Use Policy",
+      "License notice — include \"Built with Llama\" in derivative products",
+      "Scale limit — organizations with >700M MAU must request a license from Meta",
+      "Attribution — credit Meta as the creator of Llama in distributions",
+    ],
+    limitations: [
+      "Large-scale deployment — organizations exceeding 700M MAU need Meta's permission",
+      "Trademark use — does not grant rights to use Meta's trademarks",
+      "Harmful use — cannot use for illegal, harmful, or deceptive purposes",
+      "Liability — Meta disclaims all liability",
+      "Warranty — provided \"as is\" without warranty",
+    ],
+    note: "The 700M MAU threshold applies to the licensee's total products and services, not just those using Llama.",
+  },
+  {
+    id: slug("Llama 4 Community"),
+    name: "Llama 4 Community",
+    fullName: "Llama 4 Community License Agreement",
+    tier: "partial",
+    summary: "Meta's latest community license for Llama 4. Free for commercial use under 700M monthly active users.",
+    url: "https://github.com/meta-llama/llama-models/blob/main/models/llama4/LICENSE",
+    commercialUse: true,
+    permissions: [
+      "Commercial use — free for organizations with <700M monthly active users",
+      "Modification — fine-tune, modify, and create derivative works",
+      "Distribution — redistribute with license terms included",
+      "Private use — use for any personal or internal purpose",
+    ],
+    conditions: [
+      "Acceptable use policy — must comply with Meta's Acceptable Use Policy",
+      "License notice — include \"Built with Llama\" in derivative products",
+      "Scale limit — organizations with >700M MAU must request a license from Meta",
+      "Attribution — credit Meta as the creator of Llama in distributions",
+    ],
+    limitations: [
+      "Large-scale deployment — organizations exceeding 700M MAU need Meta's permission",
+      "Trademark use — does not grant rights to use Meta's trademarks",
+      "Harmful use — cannot use for illegal, harmful, or deceptive purposes",
+      "Liability — Meta disclaims all liability",
+      "Warranty — provided \"as is\" without warranty",
+    ],
+    note: "The 700M MAU threshold applies to the licensee's total products and services, not just those using Llama.",
+  },
+  {
+    id: slug("MRL"),
+    name: "MRL",
+    fullName: "Mistral Research License",
+    tier: "restricted",
+    summary: "Mistral's research license. Free for research and academic use but requires a commercial agreement for business use.",
+    url: "https://mistral.ai/licenses/MRL-0.1.md",
+    commercialUse: false,
+    permissions: [
+      "Research use — use freely for academic and research purposes",
+      "Modification — modify and create derivative works for research",
+      "Private use — use for personal, non-commercial experimentation",
+      "Educational use — use in educational and academic settings",
+    ],
+    conditions: [
+      "Non-commercial only — commercial use requires a separate agreement with Mistral AI",
+      "License notice — include the license in redistributions",
+      "Attribution — credit Mistral AI in any publications or derived works",
+    ],
+    limitations: [
+      "Commercial use — not permitted without a separate commercial license from Mistral AI",
+      "Commercial distribution — cannot redistribute for commercial purposes",
+      "Trademark use — does not grant rights to Mistral AI trademarks",
+      "Liability — Mistral AI disclaims all liability",
+      "Warranty — provided \"as is\" without warranty",
+    ],
+    note: "Contact Mistral AI for commercial licensing options if you want to use MRL-licensed models in production.",
+  },
+  {
+    id: slug("GLM-4"),
+    name: "GLM-4",
+    fullName: "GLM-4 Model License",
+    tier: "restricted",
+    summary: "Zhipu AI's license for GLM-4 models. Allows research and limited commercial use with registration.",
+    url: "https://huggingface.co/THUDM/glm-4-9b/blob/main/LICENSE",
+    commercialUse: false,
+    permissions: [
+      "Research use — use freely for academic and research purposes",
+      "Modification — fine-tune and modify for research",
+      "Private use — use for personal experimentation and evaluation",
+      "Limited commercial use — commercial use allowed after registration with Zhipu AI",
+    ],
+    conditions: [
+      "Registration — commercial use requires registration with Zhipu AI",
+      "Acceptable use — must comply with applicable laws and regulations",
+      "License notice — include the license when distributing",
+      "Attribution — credit Zhipu AI as the model creator",
+    ],
+    limitations: [
+      "Unregistered commercial use — commercial use without registration is not permitted",
+      "Harmful use — cannot use to generate illegal or harmful content",
+      "Misrepresentation — cannot claim the model outputs are human-generated",
+      "Liability — Zhipu AI disclaims all liability",
+      "Warranty — provided \"as is\" without warranty",
+    ],
+    note: "Register at zhipuai.cn to obtain commercial usage rights for GLM-4 models.",
+  },
+  {
+    id: slug("Qwen"),
+    name: "Qwen",
+    fullName: "Tongyi Qianwen License Agreement",
+    tier: "restricted",
+    summary: "Alibaba's license for Qwen models. Allows commercial use for organizations under 100M monthly active users.",
+    url: "https://huggingface.co/Qwen/Qwen2.5-72B-Instruct/blob/main/LICENSE",
+    commercialUse: false,
+    permissions: [
+      "Research use — use freely for academic and research purposes",
+      "Modification — fine-tune, modify, and create derivative works",
+      "Distribution — redistribute with license terms included",
+      "Commercial use — free for organizations with <100M monthly active users",
+    ],
+    conditions: [
+      "License notice — include the license in all distributions",
+      "Scale limit — organizations exceeding 100M MAU must request permission from Alibaba",
+      "Acceptable use — must comply with applicable laws and Alibaba's usage policies",
+      "Attribution — credit Alibaba as the model creator",
+    ],
+    limitations: [
+      "Large-scale deployment — organizations exceeding 100M MAU need Alibaba's permission",
+      "Harmful use — cannot use for illegal, harmful, or deceptive purposes",
+      "Trademark use — does not grant rights to Alibaba's trademarks",
+      "Liability — Alibaba disclaims all liability",
+      "Warranty — provided \"as is\" without warranty",
+    ],
+    note: "Most Qwen models (Qwen 2.5 <72B, Qwen 3) use Apache 2.0. This license applies mainly to Qwen 2.5 72B.",
+  },
+  {
+    id: slug("EXAONE AI"),
+    name: "EXAONE AI",
+    fullName: "EXAONE AI Model License Agreement 1.1 - NC",
+    tier: "restricted",
+    summary: "LG AI Research's license for EXAONE models. Research and non-commercial use only.",
+    url: "https://huggingface.co/LGAI-EXAONE/EXAONE-4.0-32B/blob/main/LICENSE",
+    commercialUse: false,
+    permissions: [
+      "Research use — use freely for academic and research purposes",
+      "Modification — modify and create derivative works for non-commercial purposes",
+      "Private use — use for personal experimentation",
+      "Educational use — use in educational settings",
+    ],
+    conditions: [
+      "Non-commercial use only — may not use for commercial purposes",
+      "License notice — include the license in redistributions",
+      "Attribution — credit LG AI Research",
+      "Derivative terms — derivatives must maintain the same restrictions",
+    ],
+    limitations: [
+      "Commercial use — not permitted under this license",
+      "Harmful use — cannot use for illegal or harmful purposes",
+      "Trademark use — does not grant rights to LG trademarks",
+      "Liability — LG AI Research disclaims all liability",
+      "Warranty — provided \"as is\" without warranty",
+    ],
+  },
+  {
+    id: slug("Liquid AI"),
+    name: "Liquid AI",
+    fullName: "Liquid AI Open Weights License",
+    tier: "restricted",
+    summary: "Liquid AI's custom license. Allows research use; commercial use requires a separate agreement.",
+    url: "https://huggingface.co/LiquidAI/LFM2-24B-A2B/blob/main/LICENSE.md",
+    commercialUse: false,
+    permissions: [
+      "Research use — use freely for academic and research purposes",
+      "Modification — modify and create derivative works for research",
+      "Private use — use for personal experimentation and evaluation",
+      "Benchmarking — use for evaluating and benchmarking model performance",
+    ],
+    conditions: [
+      "Non-commercial use by default — commercial use requires contacting Liquid AI",
+      "License notice — include the license in redistributions",
+      "Attribution — credit Liquid AI as the model creator",
+    ],
+    limitations: [
+      "Commercial use — requires a separate commercial license from Liquid AI",
+      "Harmful use — cannot use for illegal, harmful, or deceptive purposes",
+      "Liability — Liquid AI disclaims all liability",
+      "Warranty — provided \"as is\" without warranty",
+    ],
+    note: "Contact Liquid AI for commercial licensing options.",
+  },
+  {
+    id: slug("Kimi"),
+    name: "Kimi",
+    fullName: "Kimi Model License Agreement",
+    tier: "restricted",
+    summary: "Moonshot AI's license for Kimi models. Allows research and commercial use with acceptable use conditions.",
+    url: "https://huggingface.co/moonshotai/Kimi-K2-Instruct/blob/main/LICENSE",
+    commercialUse: false,
+    permissions: [
+      "Research use — use freely for academic and research purposes",
+      "Modification — fine-tune, modify, and create derivative works",
+      "Distribution — redistribute with license terms included",
+      "Private use — use for personal experimentation",
+    ],
+    conditions: [
+      "Acceptable use policy — must comply with Moonshot AI's usage policy",
+      "License notice — include the license in all distributions",
+      "Attribution — credit Moonshot AI as the model creator",
+      "Registration — may require registration for commercial deployment",
+    ],
+    limitations: [
+      "Harmful use — cannot use for illegal, harmful, or deceptive purposes",
+      "Misrepresentation — cannot claim outputs are human-generated for deceptive purposes",
+      "Trademark use — does not grant rights to Moonshot AI's trademarks",
+      "Liability — Moonshot AI disclaims all liability",
+      "Warranty — provided \"as is\" without warranty",
+    ],
+    note: "Review the full license terms at Moonshot AI's repository before production use.",
+  },
+];
+
+export const LICENSE_MAP = new Map(LICENSES.map((l) => [l.name, l]));
+export const LICENSE_BY_ID = new Map(LICENSES.map((l) => [l.id, l]));
+export const ALL_LICENSES = LICENSES;
+
+export function getLicenseSlug(name: string): string {
+  return slug(name);
+}
+
+export function getLicenseByName(name: string): LicenseInfo | undefined {
+  return LICENSE_MAP.get(name);
+}

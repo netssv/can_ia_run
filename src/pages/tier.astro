@@ -22,8 +22,13 @@ import IconCopy from "@/icons/copy.svg";
       </select>
       <span id="hw-ram-group" class="hidden inline-flex items-center">
         <span class="text-edge/40 mr-2">·</span>
-        <span data-tooltip="VRAM — Video memory available for loading models. On Apple Silicon/iGPUs, it's shared with system RAM" data-tooltip-pos="bottom" tabindex="0" aria-label="RAM info" class="mr-1 inline-flex cursor-help text-muted">RAM</span>
+        <span data-tooltip="VRAM — Video memory available for loading models. On Apple Silicon/iGPUs, it's shared with system RAM" data-tooltip-pos="bottom" tabindex="0" aria-label="VRAM info" class="mr-1 inline-flex cursor-help text-muted" id="hw-vram-label">VRAM</span>
         <select id="hw-ram-select" class="hw-editable-select"></select>
+      </span>
+      <span id="hw-sysram-group" class="hidden inline-flex items-center">
+        <span class="text-edge/40 mr-2">·</span>
+        <span data-tooltip="System RAM — used for CPU offloading when model doesn't fit in VRAM" data-tooltip-pos="bottom" tabindex="0" aria-label="System RAM info" class="mr-1 inline-flex cursor-help text-muted">RAM</span>
+        <select id="hw-sysram-select" class="hw-editable-select"></select>
       </span>
       <span id="hw-bw-group" class="hidden inline-flex items-center">
         <span class="text-edge/40 mr-2">·</span>
@@ -359,15 +364,76 @@ import IconCopy from "@/icons/copy.svg";
       populateDeviceSelect(deviceSelect, getDisplayName(detectedHW), overrides.device);
     }
 
+    const vramLabel = document.getElementById("hw-vram-label");
+    if (vramLabel) vramLabel.textContent = "VRAM";
+
     const effectiveRam = hw.ramGB ?? hw.totalUsableRAM;
     if (effectiveRam) {
       document.getElementById("hw-ram-group")!.classList.remove("hidden");
       populateSelect(
         document.getElementById("hw-ram-select") as HTMLSelectElement,
-        RAM_OPTIONS, detectedHW.ramGB, overrides.ramGB ?? effectiveRam, (v) => `${v} GB RAM`
+        RAM_OPTIONS, detectedHW.ramGB, overrides.ramGB ?? effectiveRam, (v) => `${v} GB`
       );
     } else {
       document.getElementById("hw-ram-group")!.classList.add("hidden");
+    }
+
+    const sysramGroup = document.getElementById("hw-sysram-group");
+    const sysramSelect = document.getElementById("hw-sysram-select") as HTMLSelectElement;
+    const sysramLabel = sysramGroup?.querySelector("[data-tooltip]") as HTMLElement | null;
+    if (sysramGroup && sysramSelect) {
+      if (hw.isMobile) {
+        sysramGroup.classList.add("hidden");
+      } else if (hw.isAppleSilicon) {
+        sysramGroup.classList.remove("hidden");
+        sysramSelect.innerHTML = "";
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = `${hw.totalUsableRAM ?? "—"} GB`;
+        sysramSelect.appendChild(opt);
+        sysramSelect.disabled = true;
+        sysramSelect.classList.add("opacity-50", "cursor-not-allowed");
+        fitSelectWidth(sysramSelect);
+        if (sysramLabel) {
+          sysramLabel.setAttribute("data-tooltip", "Unified memory — Apple Silicon shares RAM between CPU and GPU. No separate system RAM available for offloading");
+        }
+      } else {
+        sysramGroup.classList.remove("hidden");
+        sysramSelect.disabled = false;
+        sysramSelect.classList.remove("opacity-50", "cursor-not-allowed");
+        const raw = detectedHW.deviceMemoryRaw;
+        const isGte8 = raw === null || raw >= 8;
+        const selected = overrides.systemRAM ?? hw.systemRAM ?? 16;
+
+        sysramSelect.innerHTML = "";
+        const optGte8 = document.createElement("option");
+        optGte8.value = "16";
+        optGte8.textContent = isGte8 ? "≥8 GB ✱" : "≥8 GB";
+        sysramSelect.appendChild(optGte8);
+
+        const optLt8 = document.createElement("option");
+        optLt8.value = "4";
+        optLt8.textContent = !isGte8 ? "<8 GB ✱" : "<8 GB";
+        sysramSelect.appendChild(optLt8);
+
+        const sep = document.createElement("option");
+        sep.disabled = true;
+        sep.textContent = "───";
+        sysramSelect.appendChild(sep);
+
+        for (const v of [8, 16, 32, 64, 128]) {
+          const opt = document.createElement("option");
+          opt.value = String(v);
+          opt.textContent = `${v} GB`;
+          sysramSelect.appendChild(opt);
+        }
+
+        sysramSelect.value = String(selected);
+        fitSelectWidth(sysramSelect);
+        if (sysramLabel) {
+          sysramLabel.setAttribute("data-tooltip", "System RAM — used for CPU offloading when model doesn't fit in VRAM. More RAM = bigger models via offloading (slower)");
+        }
+      }
     }
 
     const effectiveBw = hw.memoryBandwidth;
@@ -389,7 +455,9 @@ import IconCopy from "@/icons/copy.svg";
     }
 
     const parts: string[] = [getDisplayName(hw)];
-    if (hw.ramGB) parts.push(`${hw.ramGB} GB RAM`);
+    if (hw.ramGB) parts.push(`${hw.ramGB} GB VRAM`);
+    if (hw.systemRAM && !hw.isAppleSilicon && !hw.isMobile) parts.push(`${hw.systemRAM} GB RAM`);
+    if (hw.isAppleSilicon && hw.totalUsableRAM) parts.push(`${hw.totalUsableRAM} GB unified`);
     if (hw.memoryBandwidth) parts.push(`~${hw.memoryBandwidth} GB/s`);
     if (hw.gpuCores) parts.push(`${hw.gpuCores.toLocaleString()} cores`);
     document.getElementById("tier-hw-label")!.textContent = parts.join(" | ");
@@ -419,6 +487,8 @@ import IconCopy from "@/icons/copy.svg";
     }
     const deviceOverrides = getDeviceOverrides(deviceKey);
     if (!deviceOverrides) return;
+    const prev = getHardwareOverrides();
+    if (prev.systemRAM !== undefined) deviceOverrides.systemRAM = prev.systemRAM;
     saveHardwareOverrides(deviceOverrides);
     currentHW = applyOverrides(detectedHW, deviceOverrides);
     updateHardwareBar(currentHW);
@@ -428,6 +498,7 @@ import IconCopy from "@/icons/copy.svg";
   function setupHardwareEditing() {
     const deviceSelect = document.getElementById("hw-device-select") as HTMLSelectElement;
     const ramSelect = document.getElementById("hw-ram-select") as HTMLSelectElement;
+    const sysramSelect = document.getElementById("hw-sysram-select") as HTMLSelectElement;
     const bwSelect = document.getElementById("hw-bw-select") as HTMLSelectElement;
 
     deviceSelect?.addEventListener("change", () => {
@@ -437,6 +508,7 @@ import IconCopy from "@/icons/copy.svg";
     function handleFieldChange() {
       const overrides = getHardwareOverrides();
       if (ramSelect?.value) overrides.ramGB = Number(ramSelect.value);
+      if (sysramSelect?.value) overrides.systemRAM = Number(sysramSelect.value);
       if (bwSelect?.value) overrides.memoryBandwidth = Number(bwSelect.value);
       if (!overrides.device || overrides.device === "auto") {
         overrides.device = "custom";
@@ -450,6 +522,7 @@ import IconCopy from "@/icons/copy.svg";
     }
 
     ramSelect?.addEventListener("change", () => { handleFieldChange(); fitSelectWidth(ramSelect); });
+    sysramSelect?.addEventListener("change", () => { handleFieldChange(); fitSelectWidth(sysramSelect); });
     bwSelect?.addEventListener("change", () => { handleFieldChange(); fitSelectWidth(bwSelect); });
   }
 

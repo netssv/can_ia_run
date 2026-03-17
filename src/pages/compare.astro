@@ -63,8 +63,24 @@ const sortedModels = [...models].sort(
 
     <!-- Comparison Table -->
     <div id="compare-table" class="hidden">
-      <!-- Summary -->
-      <div id="compare-summary" class="mb-6 flex items-center justify-center gap-6 font-mono text-sm">
+      <!-- Sort & Summary bar -->
+      <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center gap-2">
+          <label for="sort-by" class="font-mono text-[13px] text-muted uppercase tracking-wider">Sort by</label>
+          <select id="sort-by" class="compare-select compare-select--sm">
+            <option value="params-asc">Size ↑</option>
+            <option value="params-desc">Size ↓</option>
+            <option value="release-desc">Newest</option>
+            <option value="release-asc">Oldest</option>
+            <option value="name-asc">Name A→Z</option>
+            <option value="name-desc">Name Z→A</option>
+            <option value="context-desc">Context ↓</option>
+            <option value="context-asc">Context ↑</option>
+            <option value="vram-asc">Memory ↑</option>
+            <option value="vram-desc">Memory ↓</option>
+          </select>
+        </div>
+        <div id="compare-summary" class="flex items-center justify-center gap-6 font-mono text-sm">
         <span class="flex items-center gap-1.5">
           <span class="h-2.5 w-2.5 rounded-full" style="background: var(--color-can-run)"></span>
           <span class="text-secondary"><span id="header-a-label">A</span> wins: <strong id="wins-a" class="text-primary">0</strong></span>
@@ -77,10 +93,11 @@ const sortedModels = [...models].sort(
           <span class="h-2.5 w-2.5 rounded-full" style="background: var(--color-info)"></span>
           <span class="text-secondary"><span id="header-b-label">B</span> wins: <strong id="wins-b" class="text-primary">0</strong></span>
         </span>
+        </div>
       </div>
 
       <!-- Table Header -->
-      <div class="compare-row compare-header sticky top-0 z-10 border-b border-edge bg-surface font-mono text-xs uppercase tracking-wider text-muted">
+      <div class="compare-row compare-header sticky top-0 z-10 bg-surface font-mono text-xs uppercase tracking-wider text-muted">
         <div class="col-model">Model</div>
         <div class="col-device text-center" id="col-header-a">Device A</div>
         <div class="col-device text-center" id="col-header-b">Device B</div>
@@ -88,8 +105,16 @@ const sortedModels = [...models].sort(
 
       <!-- Model Rows -->
       <div id="compare-rows">
-        {sortedModels.map((model) => (
-          <a href={`/model/${model.id}`} class="compare-row group" data-compare-id={model.id}>
+        {sortedModels.map((model) => {
+          const q4 = model.quants.find(q => q.name === "Q4_K_M") || model.quants[0];
+          return (
+          <a href={`/model/${model.id}`} class="compare-row group" data-compare-id={model.id}
+            data-sort-params={model.paramsBillions}
+            data-sort-name={model.name.toLowerCase()}
+            data-sort-release={model.releaseDate || "0000-00"}
+            data-sort-context={model.contextLength}
+            data-sort-vram={q4?.vramGB ?? 0}
+          >
             <div class="col-model min-w-0">
               <span class="truncate font-pixel text-sm text-primary group-hover:text-accent transition-colors">{model.name}</span>
               <span class="ml-2 font-mono text-xs text-muted shrink-0">{model.params}</span>
@@ -107,7 +132,8 @@ const sortedModels = [...models].sort(
               <span data-mem class="font-mono text-[11px] text-muted/50"></span>
             </div>
           </a>
-        ))}
+          );
+        })}
       </div>
     </div>
 
@@ -167,6 +193,8 @@ const sortedModels = [...models].sort(
       ramGB: overrides.ramGB ?? null,
       estimatedVRAM: overrides.estimatedVRAM ?? null,
       memoryBandwidth: overrides.memoryBandwidth ?? null,
+      systemRAM: overrides.systemRAM ?? null,
+      deviceMemoryRaw: null,
       webgpu: false,
       webgpuDevice: null,
       webgpuArch: null,
@@ -268,16 +296,23 @@ const sortedModels = [...models].sort(
 
       const diff = evalA.score - evalB.score;
       row.classList.remove("winner-a", "winner-b", "winner-tie");
+
+      let winner: "a" | "b" | "tie" = "tie";
       if (diff > 5) {
-        row.classList.add("winner-a");
-        winsA++;
+        winner = "a";
       } else if (diff < -5) {
-        row.classList.add("winner-b");
-        winsB++;
+        winner = "b";
       } else {
-        row.classList.add("winner-tie");
-        ties++;
+        const toksA = evalA.toksPerSec ?? 0;
+        const toksB = evalB.toksPerSec ?? 0;
+        const toksDiff = toksA - toksB;
+        if (toksDiff > 1) winner = "a";
+        else if (toksDiff < -1) winner = "b";
       }
+
+      if (winner === "a") { row.classList.add("winner-a"); winsA++; }
+      else if (winner === "b") { row.classList.add("winner-b"); winsB++; }
+      else { row.classList.add("winner-tie"); ties++; }
 
       row.classList.toggle("both-cannot", evalA.grade === "F" && evalB.grade === "F");
     });
@@ -343,6 +378,27 @@ const sortedModels = [...models].sort(
     else if (selectB) selectB.value = DEFAULT_DEVICE_B;
   }
 
+  function sortRows() {
+    const container = document.getElementById("compare-rows");
+    const sortSelect = $<HTMLSelectElement>("#sort-by");
+    if (!container || !sortSelect) return;
+
+    const [field, direction] = sortSelect.value.split("-") as [string, "asc" | "desc"];
+    const rows = Array.from(container.querySelectorAll<HTMLElement>("[data-compare-id]"));
+    const isString = field === "name" || field === "release";
+
+    rows.sort((a, b) => {
+      const attr = `data-sort-${field}`;
+      const valA = a.getAttribute(attr) ?? "";
+      const valB = b.getAttribute(attr) ?? "";
+
+      const cmp = isString ? valA.localeCompare(valB) : parseFloat(valA) - parseFloat(valB);
+      return direction === "desc" ? -cmp : cmp;
+    });
+
+    rows.forEach(row => container.appendChild(row));
+  }
+
   function onChange() { runComparison(); syncToURL(); }
 
   function getAutoLabel(): string {
@@ -384,6 +440,11 @@ const sortedModels = [...models].sort(
     selectA.onchange = onChange;
     selectB.onchange = onChange;
 
+    const sortSelect = $<HTMLSelectElement>("#sort-by");
+    if (sortSelect) {
+      sortSelect.onchange = sortRows;
+    }
+
     if (detectedHW) {
       runComparison();
     } else {
@@ -414,6 +475,12 @@ const sortedModels = [...models].sort(
     background-position: right 8px center;
   }
 
+  .compare-select--sm {
+    width: auto;
+    padding: 6px 26px 6px 10px;
+    font-size: 13px;
+  }
+
   .compare-select:hover {
     border-color: var(--color-accent);
     background-color: var(--color-surface-hover);
@@ -432,9 +499,8 @@ const sortedModels = [...models].sort(
   .compare-row {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    align-items: center;
+    align-items: stretch;
     border-bottom: 1px solid var(--color-edge-subtle);
-    padding: 0.5rem 0;
     text-decoration: none;
     transition: background-color 0.1s;
   }
@@ -446,12 +512,13 @@ const sortedModels = [...models].sort(
   .compare-header {
     padding: 0.75rem 0;
     font-weight: 500;
+    border-bottom: none;
   }
 
   .col-model {
     display: flex;
     align-items: center;
-    padding-left: 0.5rem;
+    padding: 0.5rem;
     gap: 0.25rem;
   }
 
@@ -459,6 +526,7 @@ const sortedModels = [...models].sort(
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0.5rem 0.25rem;
     gap: 0.75rem;
   }
 
@@ -486,18 +554,12 @@ const sortedModels = [...models].sort(
     }
   }
 
-  /* Winner highlight — subtle left/right border glow */
-  .winner-a {
-    border-left: 2px solid var(--color-can-run);
+  .winner-a [data-side="a"] {
+    background: color-mix(in srgb, var(--color-can-run) 12%, transparent);
   }
 
-  .winner-b {
-    border-right: 2px solid var(--color-info);
-  }
-
-  .winner-tie {
-    border-left: 2px solid transparent;
-    border-right: 2px solid transparent;
+  .winner-b [data-side="b"] {
+    background: color-mix(in srgb, var(--color-can-run) 12%, transparent);
   }
 
   .both-cannot {

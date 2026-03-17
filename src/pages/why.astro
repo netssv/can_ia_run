@@ -98,6 +98,13 @@ const codeHF = `<span class="text-muted">// Fetch model stats from HuggingFace A
         <p class="text-base leading-relaxed text-secondary">
           CanIRun.ai runs entirely in your browser. When you visit the site, we use browser APIs to detect your GPU, CPU, and memory — then we calculate which AI models can run on your hardware and how fast. No data is sent to any server. Everything is computed client-side.
         </p>
+
+        <div class="mt-4 rounded-lg border border-maybe/30 bg-maybe/5 p-4">
+          <p class="text-sm leading-relaxed text-secondary">
+            <span class="font-pixel text-xs text-maybe">IMPORTANT</span> — All results are <strong class="text-primary">estimates</strong>. Browser APIs provide limited hardware information — GPU names can be vague, RAM values are approximate, and bandwidth numbers come from spec sheets rather than real measurements. Real-world performance depends on many factors we can't measure from a browser: thermal throttling, background processes, driver versions, OS memory pressure, and more. Use the scores as a general guideline, not as a guarantee.
+          </p>
+        </div>
+
         <div class="mt-4 rounded-lg border border-edge bg-surface-card p-5">
           <div class="flex items-center justify-between gap-2 sm:gap-4">
             <!-- Detect -->
@@ -108,7 +115,7 @@ const codeHF = `<span class="text-muted">// Fetch model stats from HuggingFace A
               <span class="font-mono text-xs text-muted">Detect</span>
             </div>
             <!-- Arrow -->
-            <IconArrowFlow class="h-3 w-8 shrink-0 text-edge/60" />
+            <IconArrowFlow class="h-4 w-10 shrink-0 text-accent/50" />
             <!-- Match -->
             <div class="flex flex-col items-center gap-2">
               <div class="flex h-11 w-11 items-center justify-center rounded-lg border border-accent/30 bg-accent/10">
@@ -117,7 +124,7 @@ const codeHF = `<span class="text-muted">// Fetch model stats from HuggingFace A
               <span class="font-mono text-xs text-muted">Match GPU</span>
             </div>
             <!-- Arrow -->
-            <IconArrowFlow class="h-3 w-8 shrink-0 text-edge/60" />
+            <IconArrowFlow class="h-4 w-10 shrink-0 text-accent/50" />
             <!-- Score -->
             <div class="flex flex-col items-center gap-2">
               <div class="flex h-11 w-11 items-center justify-center rounded-lg border border-accent/30 bg-accent/10">
@@ -126,7 +133,7 @@ const codeHF = `<span class="text-muted">// Fetch model stats from HuggingFace A
               <span class="font-mono text-xs text-muted">Score</span>
             </div>
             <!-- Arrow -->
-            <IconArrowFlow class="h-3 w-8 shrink-0 text-edge/60" />
+            <IconArrowFlow class="h-4 w-10 shrink-0 text-accent/50" />
             <!-- Grade -->
             <div class="flex flex-col items-center gap-2">
               <div class="flex h-11 w-11 items-center justify-center rounded-lg border border-can-run/30 bg-can-run/10 font-pixel text-lg text-can-run">

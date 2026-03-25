@@ -35,9 +35,12 @@ export interface AIModel {
 
 // ── Helper to compute quants from param count ─────────────
 
+// ~0.5 GB constant overhead for KV cache + inference runtime (llama.cpp, CUDA/Metal context)
+const RUNTIME_OVERHEAD_GB = 0.5;
+
 function makeQuants(paramsB: number): Quantization[] {
   const totalParams = paramsB * 1_000_000_000;
-  const compute = (bpp: number) => Math.round(Math.max((totalParams * bpp) / (1024 ** 3) * 1.1, 0.5) * 10) / 10;
+  const compute = (bpp: number) => Math.round(Math.max((totalParams * bpp) / (1024 ** 3) * 1.1 + RUNTIME_OVERHEAD_GB, 0.5) * 10) / 10;
 
   return [
     { name: "Q2_K", bits: 2, vramGB: compute(0.3125), quality: "low" },

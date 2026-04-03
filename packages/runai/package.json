@@ -1,0 +1,33 @@
+{
+  "name": "runai",
+  "version": "0.1.0",
+  "description": "Local AI runtime with hardware-aware recommendations and OpenAI-compatible API",
+  "module": "src/cli.ts",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "runai": "./bin/runai"
+  },
+  "scripts": {
+    "dev": "bun run src/cli.ts",
+    "build": "bun build ./src/cli.ts --target bun --outfile ./dist/cli.js",
+    "test": "bun test",
+    "recommend": "bun run src/cli.ts recommend",
+    "browse": "bun run src/cli.ts browse",
+    "serve": "bun run src/cli.ts serve",
+    "api": "bun run src/cli.ts api"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.2.0",
+    "node-llama-cpp": "^3.18.1"
+  },
+  "trustedDependencies": [
+    "node-llama-cpp"
+  ]
+}

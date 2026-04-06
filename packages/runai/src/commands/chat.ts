@@ -1,6 +1,6 @@
 import * as p from "@clack/prompts";
 import { basename } from "node:path";
-import { runLlamaStreamWithSegments } from "../llamacpp";
+import { runLlamaStreamWithSegments, warmupModel, isModelLoaded } from "../llamacpp";
 import { buildPrompt } from "../openai";
 import { getPromptOutput, setPromptFooter, usePromptLegend } from "../prompt-footer";
 import {
@@ -28,6 +28,20 @@ export async function handleChat(
     return;
   }
   p.log.message(`${paint("Model", ANSI.gray, true)} ${paint(basename(modelPath), ANSI.cyan)}`, { symbol: " " });
+
+  if (!isModelLoaded()) {
+    const spinner = p.spinner();
+    spinner.start(`Loading ${basename(modelPath)} into memory...`);
+    try {
+      await warmupModel(modelPath);
+      spinner.stop(`Model ready`);
+    } catch (error) {
+      spinner.stop(`Failed to load model`);
+      p.log.error(error instanceof Error ? error.message : "Model loading failed.");
+      return;
+    }
+  }
+
   p.log.message(
     `${paint("Tips", ANSI.gray, true)} /exit to quit  ·  Ctrl+T or /think toggle thinking`,
     { symbol: " " },
@@ -81,6 +95,9 @@ export async function handleChat(
       const stdin = process.stdin as NodeJS.ReadStream & { setRawMode?: (mode: boolean) => void; isRaw?: boolean };
       const wasRawMode = Boolean(stdin.isRaw);
 
+      const BAR = paint("│", ANSI.gray);
+      const BAR_PREFIX = `${BAR}  `;
+
       const clearThinking = (): void => {
         if (!process.stdout.isTTY || shownThinkingLines === 0) return;
         for (let i = 0; i < shownThinkingLines; i += 1) {
@@ -100,11 +117,14 @@ export async function handleChat(
         const title = statusMode === "thinking"
           ? waveGradient("Thinking", thinkingGradientPhase)
           : paint("Assistant replied", ANSI.green);
-        process.stdout.write(`${title}\n`);
+        process.stdout.write(`${BAR}\n`);
+        process.stdout.write(`${BAR_PREFIX}${title}\n`);
+        let lineCount = 2;
         for (const line of lines) {
-          process.stdout.write(`${paint(line || " ", ANSI.gray, true)}\n`);
+          process.stdout.write(`${BAR_PREFIX}${paint(line || " ", ANSI.gray, true)}\n`);
+          lineCount++;
         }
-        shownThinkingLines = lines.length + 1;
+        shownThinkingLines = lineCount;
       };
 
       const stopThinkingAnimation = (): void => {
@@ -222,9 +242,10 @@ export async function handleChat(
           if (!delta) return;
           if (!responseHeaderShown) {
             responseHeaderShown = true;
-            process.stdout.write("🤖  ");
+            process.stdout.write(`${BAR}\n${BAR_PREFIX}🤖  `);
           }
-          process.stdout.write(renderMarkdownDelta(delta, markdownRenderState));
+          const rendered = renderMarkdownDelta(delta, markdownRenderState);
+          process.stdout.write(rendered.replaceAll("\n", `\n${BAR_PREFIX}`));
           displayedAnswer = visibleAnswer;
         },
       );
@@ -235,14 +256,11 @@ export async function handleChat(
 
       if (responseHeaderShown) {
         const tail = flushMarkdownDelta(markdownRenderState);
-        if (tail) process.stdout.write(tail);
+        if (tail) process.stdout.write(tail.replaceAll("\n", `\n${BAR_PREFIX}`));
       }
       setRepliedStatus();
 
       if (!showThinking) clearThinking();
-      if (showThinking && hasThinkBlock) {
-        if (!responseHeaderShown) process.stdout.write("\n");
-      }
       if (responseHeaderShown) process.stdout.write("\n");
       renderChatFooter();
 

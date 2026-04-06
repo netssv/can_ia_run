@@ -52,6 +52,9 @@ export async function handlePull(args: string[]): Promise<void> {
     sourceRepo: null,
     sourceFile: basename(installedPath),
   });
+
+  const { promptLoadAfterInstall } = await import("./model-lifecycle");
+  await promptLoadAfterInstall(installedPath);
 }
 
 export async function handleServe(args: string[]): Promise<boolean> {

@@ -1,6 +1,6 @@
 import * as p from "@clack/prompts";
 import { basename } from "node:path";
-import { runLlamaStream, countTokens } from "../llamacpp";
+import { runLlamaStream, countTokens, warmupModel, isModelLoaded } from "../llamacpp";
 import { ANSI, paint } from "../terminal";
 import { hasFlag, stripGguf, resolveChatModel } from "../cli-utils";
 
@@ -20,6 +20,20 @@ export async function handleBench(args: string[]): Promise<void> {
   const modelName = stripGguf(basename(modelPath));
   if (!asJson) {
     p.intro(`runai bench — ${modelName}`);
+  }
+
+  if (!isModelLoaded()) {
+    if (!asJson) {
+      const spinner = p.spinner();
+      spinner.start(`Loading ${modelName} into memory...`);
+      await warmupModel(modelPath);
+      spinner.stop("Model ready");
+    } else {
+      await warmupModel(modelPath);
+    }
+  }
+
+  if (!asJson) {
     p.log.step("Running benchmark (3 rounds)...");
   }
 

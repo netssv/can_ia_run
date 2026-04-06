@@ -102,6 +102,16 @@ export function getLoadedModelPath(): string | null {
   return cachedModelPath;
 }
 
+export async function warmupModel(modelPath: string): Promise<void> {
+  await getModel(modelPath);
+}
+
+export function getModelMemoryUsage(): { rss: number; heapUsed: number } | null {
+  if (!cachedModel) return null;
+  const mem = process.memoryUsage();
+  return { rss: mem.rss, heapUsed: mem.heapUsed };
+}
+
 function shouldResetModelFromError(error: unknown): boolean {
   const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
   return message.includes("outofmemory")

@@ -16,6 +16,7 @@ function setupHardExitOnCtrlC(): void {
         hardExit();
       }
     });
+    process.stdin.unref();
   }
 }
 
@@ -36,6 +37,9 @@ Usage:
   runai serve [--model ...] [--port ..]  Start OpenAI-compatible API server
   runai serve --detach                   Start API as background daemon
   runai stop                             Stop background daemon
+  runai load [model]                     Pre-load a model into memory
+  runai unload                           Unload model from memory
+  runai ps                               Show currently loaded model
   runai import [--json]                  Import models from Ollama
   runai doctor [--json] [--model ...]    Diagnose setup issues
   runai --help | --version
@@ -130,6 +134,21 @@ async function main(): Promise<void> {
   if (cmd === "import") {
     const { handleImport } = await import("./commands/import-ollama");
     await handleImport(args);
+    return;
+  }
+  if (cmd === "load") {
+    const { handleLoad } = await import("./commands/model-lifecycle");
+    await handleLoad(args);
+    return;
+  }
+  if (cmd === "unload") {
+    const { handleUnload } = await import("./commands/model-lifecycle");
+    await handleUnload();
+    return;
+  }
+  if (cmd === "ps") {
+    const { handlePs } = await import("./commands/model-lifecycle");
+    await handlePs();
     return;
   }
   if (cmd === "stop") {

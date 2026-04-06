@@ -12,6 +12,7 @@ import {
   type PromptNavigationOptions,
 } from "../cli-utils";
 import { handleChat } from "./chat";
+import { promptLoadAfterInstall } from "./model-lifecycle";
 import type { RecommendedModel, CliHardwareInfo } from "../types";
 
 function recommendationOptionLabel(item: RecommendedModel, index: number): string {
@@ -134,6 +135,7 @@ async function installRecommendations(
     return "completed";
   }
 
+  let lastInstalledPath: string | null = null;
   for (const [index, model] of targets.entries()) {
     p.log.step(`Installing ${index + 1}/${targets.length}: ${model.name} (${model.id})`);
     const installed = await installCatalogModel(model);
@@ -146,18 +148,21 @@ async function installRecommendations(
       sourceFile: installed.sourceFile,
     });
     p.log.success(`Installed ${model.id}`);
+    lastInstalledPath = installed.path;
   }
 
-  usePromptLegend("default");
-  const openNow = await p.confirm({
-    message: "Installation complete. Open chat now?",
-    output: getPromptOutput(),
-  });
-  if (p.isCancel(openNow)) return "cancelled";
-  if (openNow) {
-    await handleChat([], options);
-  } else {
-    p.log.info("Next: run `runai chat` to start chatting with an installed model.");
+  if (lastInstalledPath) {
+    const loaded = await promptLoadAfterInstall(lastInstalledPath);
+
+    usePromptLegend("default");
+    const openChat = await p.confirm({
+      message: "Open chat now?",
+      output: getPromptOutput(),
+    });
+    if (p.isCancel(openChat)) return "cancelled";
+    if (openChat) {
+      await handleChat(loaded ? ["--model", lastInstalledPath] : [], options);
+    }
   }
   return "completed";
 }

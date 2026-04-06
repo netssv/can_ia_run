@@ -1,9 +1,11 @@
 import * as p from "@clack/prompts";
+import { basename } from "node:path";
 import { RUNAI_DEFAULT_PORT, RUNAI_VERSION } from "../config";
 import { isApiServerActive, isPortInUse, stopApiServerOnPort } from "../process-manager";
+import { isModelLoaded, getLoadedModelPath, warmupModel, unloadModel } from "../llamacpp";
 import { getPromptOutput, usePromptLegend } from "../prompt-footer";
 import { ANSI, paint, gradientBrand, pluralize } from "../terminal";
-import { listInstalledModelOptions } from "../cli-utils";
+import { listInstalledModelOptions, stripGguf } from "../cli-utils";
 import { handleChat } from "./chat";
 import { handleRecommend } from "./recommend-install";
 import { handleDeleteModels } from "./simple";
@@ -15,9 +17,15 @@ function homeIntro(installedCount: number, apiActive: boolean, portInUse: boolea
     : portInUse
       ? paint(`• PORT IN USE :${RUNAI_DEFAULT_PORT}`, ANSI.magenta, true)
       : paint(`• API OFF :${RUNAI_DEFAULT_PORT}`, ANSI.yellow, true);
+
+  const loadedPath = getLoadedModelPath();
+  const loadedLabel = loadedPath
+    ? paint(`• ${stripGguf(loadedPath.split("/").pop()!)} loaded`, ANSI.green, true)
+    : paint("• no model loaded", ANSI.gray, true);
+
   return [
     `${gradientBrand("runai")} ${paint(`v${RUNAI_VERSION}`, ANSI.gray, true)}`,
-    `   ${paint("local-first AI runtime", ANSI.gray, true)}   ${paint(`• ${installedCount} ${pluralize(installedCount, "model", "models")} installed`, ANSI.cyan, true)}   ${apiLabel}`,
+    `   ${paint("local-first AI runtime", ANSI.gray, true)}   ${paint(`• ${installedCount} ${pluralize(installedCount, "model", "models")} installed`, ANSI.cyan, true)}   ${apiLabel}   ${loadedLabel}`,
   ].join("\n");
 }
 
@@ -32,6 +40,9 @@ export async function handleHome(): Promise<void> {
       continue;
     }
 
+    const loadedPath = getLoadedModelPath();
+    const loadedName = loadedPath ? stripGguf(loadedPath.split("/").pop()!) : null;
+
     p.intro(homeIntro(installed.length, apiActive, portInUse));
     usePromptLegend("list");
     const action = await p.select({
@@ -39,6 +50,12 @@ export async function handleHome(): Promise<void> {
       output: getPromptOutput(),
       options: [
         { value: "chat", label: "☻  Open an interactive chat session" },
+        {
+          value: "load",
+          label: loadedName
+            ? `⚡  Model in memory: ${paint(loadedName, ANSI.green, true)} ${paint("— change or unload", ANSI.gray, true)}`
+            : "⚡  Load a model into memory",
+        },
         { value: "install", label: "⚙︎  Install more models" },
         { value: "delete", label: "♻  Delete models" },
         {
@@ -54,6 +71,50 @@ export async function handleHome(): Promise<void> {
 
     if (action === "chat") {
       await handleChat([], { allowBackOnCancel: true });
+      continue;
+    }
+    if (action === "load") {
+      usePromptLegend("list");
+      const selected = await p.select({
+        message: "Select a model to load into memory",
+        output: getPromptOutput(),
+        options: installed.map((item) => {
+          const isLoaded = loadedPath === item.path;
+          return {
+            value: item.path,
+            label: isLoaded
+              ? `${item.name} ${paint("(loaded)", ANSI.green, true)}`
+              : item.name,
+            hint: isLoaded ? "currently in memory" : undefined,
+          };
+        }),
+      });
+
+      if (p.isCancel(selected)) continue;
+
+      if (selected === loadedPath) {
+        usePromptLegend("default");
+        const shouldUnload = await p.confirm({
+          message: `${stripGguf(basename(selected))} is already loaded. Unload it?`,
+          output: getPromptOutput(),
+        });
+        if (!p.isCancel(shouldUnload) && shouldUnload) {
+          await unloadModel();
+          p.log.success("Model unloaded from memory.");
+        }
+        continue;
+      }
+
+      const modelName = stripGguf(basename(selected));
+      const spinner = p.spinner();
+      spinner.start(`Loading ${modelName} into memory...`);
+      try {
+        await warmupModel(selected);
+        spinner.stop(`${paint(modelName, ANSI.cyan)} loaded and ready.`);
+      } catch (error) {
+        spinner.stop("Failed to load model");
+        p.log.error(error instanceof Error ? error.message : "Model loading failed.");
+      }
       continue;
     }
     if (action === "install") {

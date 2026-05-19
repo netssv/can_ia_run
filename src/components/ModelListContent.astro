@@ -1281,6 +1281,7 @@ function timeAgo(dateStr: string | null): string {
     if (tokEl) {
       if (toks !== null && status !== "cannot-run") {
         tokEl.textContent = `~${toks} tok/s`
+        tokEl.dataset.tok = String(toks)
         if (toks >= 60) tokEl.className = "font-mono text-[13px] text-can-run"
         else if (toks >= 30)
           tokEl.className = "font-mono text-[13px] text-can-run/70"
@@ -1291,6 +1292,7 @@ function timeAgo(dateStr: string | null): string {
         else tokEl.className = "font-mono text-[13px] text-cannot-run"
       } else {
         tokEl.textContent = "0 tok/s"
+        delete tokEl.dataset.tok
         tokEl.className = "font-mono text-[13px] text-cannot-run/70"
       }
     }
@@ -1819,6 +1821,161 @@ function timeAgo(dateStr: string | null): string {
     })
   }
 
+  // ── Tok/s Hover Preview ────────────────────────────────
+
+  let speedPreviewWired = false
+
+  function setupSpeedPreview() {
+    if (speedPreviewWired) return
+    if (typeof window === "undefined") return
+    if (!window.matchMedia("(hover: hover)").matches) return
+    speedPreviewWired = true
+
+    const CHARS_PER_TOKEN = 4
+    const SAMPLE =
+      "Sure! Running this model locally feels roughly like this. Each token streams in real time so you can preview the perceived chat experience before installing."
+
+    let popup: HTMLElement | null = null
+    let textEl: HTMLElement | null = null
+    let rateEl: HTMLElement | null = null
+    let tierEl: HTMLElement | null = null
+    let caretEl: HTMLElement | null = null
+    let rafId: number | null = null
+    let activeTrigger: HTMLElement | null = null
+
+    function tierFor(t: number): { label: string; color: string } {
+      if (t >= 60) return { label: "Instant", color: "var(--color-can-run)" }
+      if (t >= 30) return { label: "Smooth", color: "var(--color-can-run)" }
+      if (t >= 15) return { label: "Comfortable", color: "var(--color-maybe)" }
+      if (t >= 5) return { label: "Slow", color: "var(--color-maybe)" }
+      return { label: "Painful", color: "var(--color-cannot-run)" }
+    }
+
+    function ensurePopup() {
+      if (popup) return
+      popup = document.createElement("div")
+      popup.className = "speed-preview"
+      popup.setAttribute("role", "tooltip")
+      popup.setAttribute("aria-live", "polite")
+      popup.innerHTML = `
+        <div class="speed-preview-head">
+          <span class="speed-preview-rate"></span>
+          <span class="speed-preview-tier"></span>
+        </div>
+        <div class="speed-preview-body">
+          <span class="speed-preview-text"></span><span class="speed-preview-caret">▍</span>
+        </div>
+      `
+      document.body.appendChild(popup)
+      textEl = popup.querySelector(".speed-preview-text")
+      rateEl = popup.querySelector(".speed-preview-rate")
+      tierEl = popup.querySelector(".speed-preview-tier")
+      caretEl = popup.querySelector(".speed-preview-caret")
+    }
+
+    function position(trigger: HTMLElement) {
+      if (!popup) return
+      const margin = 8
+      const rect = trigger.getBoundingClientRect()
+      popup.style.left = "0px"
+      popup.style.top = "0px"
+      const popRect = popup.getBoundingClientRect()
+      let left = rect.left + rect.width / 2 - popRect.width / 2
+      left = Math.max(margin, Math.min(left, window.innerWidth - popRect.width - margin))
+      let top = rect.top - popRect.height - margin
+      if (top < margin) top = rect.bottom + margin
+      popup.style.left = `${left}px`
+      popup.style.top = `${top}px`
+    }
+
+    function show(trigger: HTMLElement) {
+      const tok = parseFloat(trigger.dataset.tok || "")
+      if (!Number.isFinite(tok) || tok <= 0) return
+      activeTrigger = trigger
+      ensurePopup()
+      if (!popup || !textEl || !rateEl || !tierEl || !caretEl) return
+
+      const t = tierFor(tok)
+      rateEl.textContent = `≈ ${tok} tok/s`
+      rateEl.style.color = t.color
+      tierEl.textContent = t.label
+      tierEl.style.color = t.color
+      caretEl.style.color = t.color
+      textEl.textContent = ""
+
+      popup.classList.add("visible")
+      position(trigger)
+      requestAnimationFrame(() => {
+        if (activeTrigger === trigger) position(trigger)
+      })
+
+      if (rafId) cancelAnimationFrame(rafId)
+      const charsPerSec = Math.max(1, tok * CHARS_PER_TOKEN)
+      const start = performance.now()
+      const animate = (now: number) => {
+        if (activeTrigger !== trigger || !textEl) return
+        const elapsed = now - start
+        const chars = Math.min(
+          SAMPLE.length,
+          Math.floor((elapsed / 1000) * charsPerSec),
+        )
+        textEl.textContent = SAMPLE.slice(0, chars)
+        if (chars < SAMPLE.length) {
+          rafId = requestAnimationFrame(animate)
+        } else {
+          rafId = null
+          if (caretEl) caretEl.style.opacity = "0"
+        }
+      }
+      caretEl.style.opacity = ""
+      rafId = requestAnimationFrame(animate)
+    }
+
+    function hide() {
+      if (rafId) {
+        cancelAnimationFrame(rafId)
+        rafId = null
+      }
+      activeTrigger = null
+      if (popup) popup.classList.remove("visible")
+    }
+
+    document.addEventListener("mouseover", (e) => {
+      const trigger = (e.target as Element).closest<HTMLElement>(
+        "[data-tok-speed][data-tok]",
+      )
+      if (trigger) show(trigger)
+    })
+
+    document.addEventListener("mouseout", (e) => {
+      const trigger = (e.target as Element).closest<HTMLElement>(
+        "[data-tok-speed][data-tok]",
+      )
+      if (!trigger) return
+      const related = e.relatedTarget as Element | null
+      if (!trigger.contains(related)) hide()
+    })
+
+    document.addEventListener("focusin", (e) => {
+      const trigger = (e.target as Element).closest<HTMLElement>(
+        "[data-tok-speed][data-tok]",
+      )
+      if (trigger) show(trigger)
+    })
+
+    document.addEventListener("focusout", (e) => {
+      const trigger = (e.target as Element).closest<HTMLElement>(
+        "[data-tok-speed][data-tok]",
+      )
+      if (trigger) hide()
+    })
+
+    window.addEventListener("scroll", () => hide(), { passive: true })
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") hide()
+    })
+  }
+
   // ── Boot ───────────────────────────────────────────────
 
   document.addEventListener("astro:page-load", () => {
@@ -1843,6 +2000,7 @@ function timeAgo(dateStr: string | null): string {
     setupHardwareEditing()
     setupLicenseLinks()
     setupPopstate()
+    setupSpeedPreview()
     applyViewMode()
     applyFilters()
     init()
@@ -2025,5 +2183,91 @@ function timeAgo(dateStr: string | null): string {
     border: 1px solid var(--color-edge);
     border-radius: 0.5rem;
     overflow: hidden;
+  }
+
+  /* ── Tok/s Hover Preview ─────────────────────────── */
+
+  [data-tok-speed][data-tok] {
+    cursor: help;
+  }
+
+  .speed-preview {
+    position: fixed;
+    width: min(280px, calc(100vw - 16px));
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--color-surface-card) 94%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--color-edge);
+    color: var(--color-secondary);
+    font-family: var(--font-sans);
+    font-size: 12px;
+    line-height: 1.45;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 9998;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  }
+
+  .speed-preview.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .speed-preview-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-edge) 60%, transparent);
+  }
+
+  .speed-preview-rate {
+    font-weight: 600;
+  }
+
+  .speed-preview-tier {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.85;
+  }
+
+  .speed-preview-body {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    line-height: 1.55;
+    color: var(--color-primary);
+    min-height: 4.7em;
+    word-break: break-word;
+  }
+
+  .speed-preview-caret {
+    display: inline-block;
+    margin-left: 1px;
+    color: var(--color-accent);
+    animation: speed-caret-blink 0.9s steps(2, end) infinite;
+  }
+
+  @keyframes speed-caret-blink {
+    50% { opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .speed-preview {
+      transition-duration: 0.01ms !important;
+    }
+    .speed-preview-caret {
+      animation: none;
+    }
   }
 </style>

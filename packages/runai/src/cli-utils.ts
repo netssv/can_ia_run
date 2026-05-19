@@ -1,12 +1,5 @@
 import * as p from "@clack/prompts";
 import { basename } from "node:path";
-import {
-  getInstalledModelById,
-  isModelFilePresent,
-  listInstalledModels,
-  removeInstalledModelById,
-  upsertInstalledModel,
-} from "./db";
 import { listInstalledModelPaths } from "./model-store";
 import { getPromptOutput, usePromptLegend } from "./prompt-footer";
 import { ANSI, paint } from "./terminal";
@@ -83,6 +76,7 @@ export function uiFitScore(score: number): number {
 }
 
 export async function listInstalledModelOptions(): Promise<InstalledModelOption[]> {
+  const { isModelFilePresent, listInstalledModels, removeInstalledModelById, upsertInstalledModel } = await import("./db");
   const dbModels = listInstalledModels();
   const options: InstalledModelOption[] = [];
   for (const record of dbModels) {
@@ -114,6 +108,7 @@ export async function resolveChatModel(args: string[], options: PromptNavigation
   const explicit = getArgValue(args, "--model");
   if (explicit) {
     if (explicit.includes("/") || explicit.endsWith(".gguf")) return explicit;
+    const { getInstalledModelById, isModelFilePresent } = await import("./db");
     const installedById = getInstalledModelById(normalizeModelId(explicit));
     if (installedById && isModelFilePresent(installedById.path)) {
       return installedById.path;

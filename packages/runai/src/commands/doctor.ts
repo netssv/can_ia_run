@@ -57,7 +57,7 @@ export async function handleDoctor(args: string[]): Promise<void> {
       name: "node-llama-cpp",
       status: "fail",
       detail: error instanceof Error ? error.message : "runtime init failed",
-      fix: "Run `bun pm trust node-llama-cpp` and reinstall dependencies.",
+      fix: "Run `pnpm approve-builds node-llama-cpp` and then `pnpm install`.",
     });
   }
 

@@ -6,7 +6,7 @@ import { printHardware, printRecommendations } from "../output";
 import { recommendTopModels, searchCatalog } from "../recommend";
 import { sendRecommendationTelemetry } from "../telemetry";
 import { getPromptOutput, usePromptLegend } from "../prompt-footer";
-import { ANSI, paint } from "../terminal";
+import { ANSI, paint, displayWidth, truncateAnsi } from "../terminal";
 import {
   getArgValue, hasFlag, parseInstallTokens, uiFitScore,
   type PromptNavigationOptions,
@@ -19,7 +19,7 @@ function recommendationOptionLabel(item: RecommendedModel, index: number): strin
   const quant = paint(`[${item.quant}]`, ANSI.gray);
   const fit = uiFitScore(item.score);
   const fitLine = `   ${paint("☆ Fit:", ANSI.magenta, true)} ${paint(`${fit}/100`, ANSI.green, true)}`;
-  const metricsLine = `   ${paint("⛁", ANSI.cyan, true)} ${paint("Disk:", ANSI.cyan, true)} ${paint(`${item.memoryNeededGB} GB`, ANSI.cyan, true)}   ${paint("⛃", ANSI.cyan, true)} ${paint("VRAM:", ANSI.cyan, true)} ${paint(`~${item.diskNeededGB} GB`, ANSI.cyan, true)}`;
+  const metricsLine = `   ${paint("⛁", ANSI.cyan, true)} ${paint("Disk:", ANSI.cyan, true)} ${paint(`${item.diskNeededGB} GB`, ANSI.cyan, true)}   ${paint("⛃", ANSI.cyan, true)} ${paint("VRAM:", ANSI.cyan, true)} ${paint(`~${item.memoryNeededGB} GB`, ANSI.cyan, true)}`;
   const speedLine = `   ${paint("⚡Speed expected:", ANSI.yellow)} ~${item.expectedTokensPerSec ?? "?"} tok/s`;
   return `${paint(String(index + 1), ANSI.bold)}. ${item.name} ${quant}\n${fitLine}\n${metricsLine}\n${speedLine}\n`;
 }
@@ -28,9 +28,16 @@ function searchableModelLabel(item: RecommendedModel): string {
   return `${item.name} ${paint(`[${item.quant}]`, ANSI.gray)}`;
 }
 
-function searchableModelHint(item: RecommendedModel): string {
+function searchableModelHint(item: RecommendedModel, labelVisibleLen: number): string {
   const fit = uiFitScore(item.score);
-  return `☆ Fit ${fit}/100  •  score ${item.score}  •  grade ${item.grade}  •  ⚡~${item.expectedTokensPerSec ?? "?"} tok/s`;
+  const fitLabel = `${paint("☆ Fit", ANSI.magenta, true)} ${paint(`${fit}/100`, ANSI.green, true)}`;
+  const scoreLabel = `${paint("score", ANSI.cyan, true)} ${paint(String(item.score), ANSI.cyan, true)}`;
+  const gradeLabel = `${paint("grade", ANSI.yellow, true)} ${paint(item.grade, ANSI.yellow, true)}`;
+  const speedLabel = `${paint(`⚡~${item.expectedTokensPerSec ?? "?"} tok/s`, ANSI.yellow)}`;
+  const full = `${fitLabel}  •  ${scoreLabel}  •  ${gradeLabel}  •  ${speedLabel}`;
+  const cols = process.stdout.columns || 80;
+  const overhead = 8 + labelVisibleLen;
+  return truncateAnsi(full, cols - overhead);
 }
 
 function resolveInstallTargets(tokens: string[], recommendations: RecommendedModel[]): RecommendedModel[] {
@@ -64,7 +71,7 @@ async function promptInstallSelection(
   const candidates = recommendations.filter((item) => !item.downloaded);
   if (candidates.length === 0) return null;
   const availableCatalog = catalog.filter((item) => !item.downloaded);
-  let visibleCount = candidates.length;
+  let visibleCount = Math.min(candidates.length, 3);
 
   while (true) {
     const visible = availableCatalog.slice(0, visibleCount);
@@ -103,11 +110,14 @@ async function promptInstallSelection(
         placeholder: "Type to filter models...",
         maxItems: 10,
         output: getPromptOutput(),
-        options: availableCatalog.map((item) => ({
-          value: item.id,
-          label: searchableModelLabel(item),
-          hint: searchableModelHint(item),
-        })),
+        options: availableCatalog.map((item) => {
+          const label = searchableModelLabel(item);
+          return {
+            value: item.id,
+            label,
+            hint: searchableModelHint(item, displayWidth(label)),
+          };
+        }),
       });
       if (p.isCancel(searched)) return null;
       return searched;

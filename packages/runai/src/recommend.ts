@@ -187,7 +187,7 @@ function pickBestQuant(
     const evalResult = evaluateModelComplete(quant.vramGB, hw, model.paramsBillions);
     if (evalResult.status === "cannot-run" || evalResult.status === "unknown") continue;
     const downloaded = isModelInstalled(model.id);
-    const diskNeededGB = Math.round((quant.vramGB * 1.05) * 10) / 10;
+    const diskNeededGB = quant.diskGB;
     const rankingScore = computeRankingScore(
       model,
       quant.bits,

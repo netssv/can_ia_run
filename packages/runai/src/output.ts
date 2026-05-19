@@ -68,7 +68,7 @@ export function printRecommendations(list: RecommendedModel[]): void {
     log.message(
       `${index + 1}. ${item.name} ${quantTag(item.quant)}\n`
       + `   ${value("☆ Fit:", ANSI.magenta)} ${value(`${fit}/100`, ANSI.green)}\n`
-      + `   ${value("⛁ Disk:", ANSI.cyan)} ${item.memoryNeededGB} GB   ${value("⛃ VRAM:", ANSI.cyan)} ~${item.diskNeededGB} GB\n`
+      + `   ${value("⛁ Disk:", ANSI.cyan)} ${item.diskNeededGB} GB   ${value("⛃ VRAM:", ANSI.cyan)} ~${item.memoryNeededGB} GB\n`
       + `   ${value("⚡Speed expected:", ANSI.yellow)} ${value(`~${speed} tok/s`, ANSI.yellow)}`,
       { symbol: "◆" },
     );
@@ -83,7 +83,7 @@ export function printBrowseResults(list: RecommendedModel[]): void {
   log.step("Catalog matches");
   for (const [index, item] of list.entries()) {
     log.message(
-      `${String(index + 1).padStart(2, " ")}. ${item.name} (${item.id})  [${item.quant}]  ⛁ ${item.memoryNeededGB} GB  ⚡ ~${item.expectedTokensPerSec ?? "?"} tok/s  ${statusLabel(item.status)}`,
+      `${String(index + 1).padStart(2, " ")}. ${item.name} (${item.id})  [${item.quant}]  ⛁ ${item.diskNeededGB} GB  ⚡ ~${item.expectedTokensPerSec ?? "?"} tok/s  ${statusLabel(item.status)}`,
       { symbol: "•" },
     );
   }

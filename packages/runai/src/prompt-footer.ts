@@ -25,6 +25,9 @@ class StickyFooterOutput extends Writable {
     }, 60);
   };
 
+  get columns(): number { return this.target.columns; }
+  get rows(): number { return this.target.rows; }
+
   constructor(target: NodeJS.WriteStream) {
     super();
     this.target = target;

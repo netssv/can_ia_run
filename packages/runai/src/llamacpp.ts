@@ -45,7 +45,7 @@ let cachedModel: LlamaModel | null = null;
 let cachedLlama: LlamaInstance | null = null;
 let keepAliveTimer: ReturnType<typeof setTimeout> | null = null;
 const modelArchitectureCache = new Map<string, string>();
-const UNSUPPORTED_MAIN_ARCHITECTURES = new Set(["gemma4"]);
+const UNSUPPORTED_MAIN_ARCHITECTURES = new Set<string>([]);
 const GPU_OOM_HINT = "GPU memory exhausted while running the model. Try a smaller quant/model, lower max tokens, or close GPU-heavy apps and retry.";
 
 type DisposableResource = {
@@ -102,8 +102,8 @@ export function getLoadedModelPath(): string | null {
   return cachedModelPath;
 }
 
-export async function warmupModel(modelPath: string): Promise<void> {
-  await getModel(modelPath);
+export async function warmupModel(modelPath: string, onProgress?: (progress: number) => void): Promise<void> {
+  await getModel(modelPath, onProgress);
 }
 
 export function getModelMemoryUsage(): { rss: number; heapUsed: number } | null {
@@ -186,13 +186,13 @@ async function assertMainChatModel(modelPath: string): Promise<void> {
 
 async function ensureLlama() {
   if (!cachedLlama) {
-    const { getLlama } = await requireLlamaModule();
-    cachedLlama = await getLlama();
+    const { getLlama, LlamaLogLevel } = await requireLlamaModule();
+    cachedLlama = await getLlama({ logLevel: LlamaLogLevel.error });
   }
   return cachedLlama;
 }
 
-async function getModel(modelPath: string) {
+async function getModel(modelPath: string, onProgress?: (progress: number) => void) {
   if (cachedModel && cachedModelPath === modelPath) {
     resetKeepAliveTimer();
     return cachedModel;
@@ -209,7 +209,7 @@ async function getModel(modelPath: string) {
 
   const llama = await ensureLlama();
   try {
-    cachedModel = await llama.loadModel({ modelPath });
+    cachedModel = await llama.loadModel({ modelPath, onLoadProgress: onProgress });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (message.toLowerCase().includes("clip cannot be used as main model")) {
@@ -549,4 +549,77 @@ export async function runLlamaChatStreamWithSegments(
   } finally {
     await disposeResource(context);
   }
+}
+
+// ── Persistent chat session ──────────────────────────────────
+
+export interface PersistentChatSession {
+  prompt(
+    text: string,
+    params: InferenceParams,
+    onChunk: (chunk: LlamaStreamChunk) => void,
+  ): Promise<{ completionTokens: number }>;
+  dispose(): Promise<void>;
+}
+
+export async function createPersistentChatSession(
+  modelPath: string,
+  systemPrompt?: string,
+): Promise<PersistentChatSession> {
+  const { LlamaChatSession } = await requireLlamaModule();
+  const model = await getModel(modelPath);
+  const context = await model.createContext();
+  const session = new LlamaChatSession({
+    contextSequence: context.getSequence(),
+    systemPrompt,
+  });
+
+  return {
+    async prompt(text, params, onChunk) {
+      const promptOpts = buildPromptOptions(params);
+      let hasChunks = false;
+      let fullText = "";
+
+      try {
+        const responseText = await session.prompt(text, {
+          ...promptOpts,
+          onResponseChunk: (chunk: {
+            type: string | undefined;
+            text: string;
+            segmentType?: string;
+            segmentStartTime?: unknown;
+            segmentEndTime?: unknown;
+          }) => {
+            hasChunks = true;
+            fullText += chunk.text;
+            if (chunk.type === "segment") {
+              const segmentType =
+                chunk.segmentType === "thought" ? "thought" : "comment";
+              onChunk({
+                text: chunk.text,
+                segmentType,
+                segmentStart: Boolean(chunk.segmentStartTime),
+                segmentEnd: Boolean(chunk.segmentEndTime),
+              });
+              return;
+            }
+            onChunk({ text: chunk.text, segmentType: "main" });
+          },
+        } as never);
+
+        if (!hasChunks && responseText) {
+          fullText = responseText;
+          onChunk({ text: responseText, segmentType: "main" });
+        }
+
+        const completionTokens = model.tokenize(fullText || responseText).length;
+        return { completionTokens };
+      } catch (error) {
+        return await handleInferenceError(error);
+      }
+    },
+    async dispose() {
+      await disposeResource(context);
+    },
+  };
 }

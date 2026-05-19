@@ -1,3 +1,5 @@
+import stringWidth from "fast-string-width";
+
 export const ANSI = {
   reset: "\u001b[0m",
   bold: "\u001b[1m",
@@ -9,6 +11,34 @@ export const ANSI = {
   yellow: "\u001b[33m",
   magenta: "\u001b[35m",
 };
+
+export function stripAnsi(text: string): string {
+  return text.replace(/\u001b\[[0-9;]*m/g, "");
+}
+
+export function displayWidth(text: string): number {
+  return stringWidth(stripAnsi(text));
+}
+
+export function truncateAnsi(text: string, maxWidth: number): string {
+  if (maxWidth <= 0) return "";
+  if (displayWidth(text) <= maxWidth) return text;
+
+  let width = 0;
+  let i = 0;
+  const target = maxWidth - 1;
+  while (i < text.length && width < target) {
+    if (text[i] === "\u001b") {
+      const end = text.indexOf("m", i);
+      if (end !== -1) { i = end + 1; continue; }
+    }
+    const charWidth = stringWidth(text[i]!);
+    if (width + charWidth > target) break;
+    width += charWidth;
+    i++;
+  }
+  return `${text.slice(0, i)}…${ANSI.reset}`;
+}
 
 export function paint(text: string, color: string, muted = false): string {
   if (!process.stdout.isTTY) return text;

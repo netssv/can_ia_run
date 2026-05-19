@@ -56,31 +56,30 @@ function formatSpeed(bytesPerSecond: number): string {
   return `${formatBytes(bytesPerSecond)}/s`;
 }
 
-function formatBar(percent: number, width = 28): string {
+export function formatBar(percent: number, width = 28): string {
   const safe = clampPercent(percent);
   const filled = Math.round((safe / 100) * width);
   const empty = width - filled;
   return `${"█".repeat(filled)}${"░".repeat(empty)}`;
 }
 
-function renderTwoLineBlock(line1: string, line2: string, hasRendered: boolean): boolean {
+export function renderTwoLineBlock(line1: string, line2: string, hasRendered: boolean): boolean {
   if (!process.stdout.isTTY) return hasRendered;
   if (!hasRendered) {
     process.stdout.write(`${line1}\n${line2}`);
     return true;
   }
-  // Clear current second line, move up, clear first line, and redraw both lines.
   process.stdout.write("\r\u001b[2K\u001b[1A\r\u001b[2K");
   process.stdout.write(`${line1}\n${line2}`);
   return true;
 }
 
-function clearTwoLineBlock(hasRendered: boolean): void {
+export function clearTwoLineBlock(hasRendered: boolean): void {
   if (!process.stdout.isTTY || !hasRendered) return;
   process.stdout.write("\r\u001b[2K\u001b[1A\r\u001b[2K\r");
 }
 
-function setCursorVisible(visible: boolean): void {
+export function setCursorVisible(visible: boolean): void {
   if (!process.stdout.isTTY) return;
   process.stdout.write(visible ? ANSI.showCursor : ANSI.hideCursor);
 }

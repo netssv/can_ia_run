@@ -23,16 +23,24 @@ function getRepoFromModelUrl(modelUrl: string): string {
   return `${parts[0]}/${parts[1]}`;
 }
 
-function scoreCandidate(filename: string, quantToken: string): number {
-  const normalized = filename.toLowerCase();
+function stripNonAlnum(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function scoreCandidate(filename: string, quantName: string): number {
+  const lower = filename.toLowerCase();
+  const stripped = stripNonAlnum(filename);
+  const quantLower = quantName.toLowerCase();
+  const quantStripped = stripNonAlnum(quantName);
   let score = 0;
-  if (normalized.includes(quantToken)) score += 100;
-  if (normalized.includes("instruct")) score += 5;
-  if (normalized.includes("chat")) score += 3;
-  if (normalized.includes("q4_")) score += 2;
-  if (normalized.includes("q5_")) score += 2;
-  if (normalized.includes("q6_")) score += 2;
-  if (normalized.includes("q8_")) score += 1;
+  if (lower.includes(quantLower)) score += 100;
+  else if (stripped.includes(quantStripped)) score += 80;
+  if (lower.includes("instruct")) score += 5;
+  if (lower.includes("chat")) score += 3;
+  if (lower.includes("q4_")) score += 2;
+  if (lower.includes("q5_")) score += 2;
+  if (lower.includes("q6_")) score += 2;
+  if (lower.includes("q8_")) score += 1;
   return score;
 }
 
@@ -54,13 +62,12 @@ function isMainModelGGUF(fileName: string): boolean {
   return !blockedTokens.some((token) => normalized.includes(token));
 }
 
-function pickBestGGUFFile(files: string[], quantName: string): string {
-  const quantToken = quantName.toLowerCase().replace(/[^a-z0-9]/g, "");
+function pickBestGGUFFile(files: string[], quantName: string): string | undefined {
   const preferredFiles = files.filter(isMainModelGGUF);
   const ranked = [...(preferredFiles.length > 0 ? preferredFiles : files)]
     .map((filename) => ({
       filename,
-      score: scoreCandidate(filename, quantToken),
+      score: scoreCandidate(filename, quantName),
     }))
     .sort((a, b) => b.score - a.score || a.filename.length - b.filename.length);
   return ranked[0]?.filename;

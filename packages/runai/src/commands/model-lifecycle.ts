@@ -7,6 +7,7 @@ import {
   getLoadedModelPath,
   getModelMemoryUsage,
 } from "../llamacpp";
+import { formatBar, renderTwoLineBlock, clearTwoLineBlock, setCursorVisible } from "../pull";
 import { getPromptOutput, usePromptLegend } from "../prompt-footer";
 import { ANSI, paint } from "../terminal";
 import { resolveChatModel, stripGguf } from "../cli-utils";
@@ -21,6 +22,61 @@ function formatBytes(bytes: number): string {
     idx += 1;
   }
   return `${value.toFixed(idx < 2 ? 0 : 1)} ${units[idx]}`;
+}
+
+export async function loadModelWithProgress(modelPath: string): Promise<void> {
+  const modelName = stripGguf(basename(modelPath));
+  const isTTY = process.stdout.isTTY;
+
+  if (!isTTY) {
+    const spinner = p.spinner();
+    spinner.start(`Loading ${modelName} into memory...`);
+    try { await warmupModel(modelPath); } catch (error) {
+      spinner.stop("Failed to load model");
+      p.log.error(error instanceof Error ? error.message : "Model loading failed.");
+      throw error;
+    }
+    spinner.stop(`${paint(modelName, ANSI.cyan)} loaded and ready.`);
+    return;
+  }
+
+  setCursorVisible(false);
+  let lastPct = 0;
+  let rendered = false;
+  const spinnerFrames = ["◐", "◓", "◑", "◒"];
+  let spinnerTick = 0;
+
+  const redraw = (pct: number) => {
+    const bar = formatBar(pct);
+    const pctLabel = `${String(pct).padStart(3, " ")}%`;
+    const frame = spinnerFrames[spinnerTick % spinnerFrames.length];
+    const line1 = `${frame} Loading ${modelName} [${bar}] ${pctLabel}`;
+    const line2 = `${paint("⛃", ANSI.cyan)} ${paint("Loading into memory...", ANSI.cyan)}`;
+    rendered = renderTwoLineBlock(line1, line2, rendered);
+  };
+
+  const tick = setInterval(() => { spinnerTick++; redraw(lastPct); }, 80);
+  redraw(0);
+
+  try {
+    await warmupModel(modelPath, (fraction) => {
+      const pct = Math.min(100, Math.round(fraction * 100));
+      if (pct > lastPct) {
+        lastPct = pct;
+        redraw(pct);
+      }
+    });
+    clearInterval(tick);
+    clearTwoLineBlock(rendered);
+    setCursorVisible(true);
+    p.log.success(`${paint(modelName, ANSI.cyan)} loaded and ready.`);
+  } catch (error) {
+    clearInterval(tick);
+    clearTwoLineBlock(rendered);
+    setCursorVisible(true);
+    p.log.error(error instanceof Error ? error.message : "Model loading failed.");
+    throw error;
+  }
 }
 
 export async function handleLoad(args: string[]): Promise<void> {
@@ -41,14 +97,10 @@ export async function handleLoad(args: string[]): Promise<void> {
     return;
   }
 
-  const spinner = p.spinner();
-  spinner.start(`Loading ${modelName} into memory...`);
   try {
-    await warmupModel(modelPath);
-    spinner.stop(`${paint(modelName, ANSI.cyan)} loaded and ready.`);
-  } catch (error) {
-    spinner.stop("Failed to load model");
-    p.log.error(error instanceof Error ? error.message : "Model loading failed.");
+    await loadModelWithProgress(modelPath);
+  } catch {
+    // Error already logged by loadModelWithProgress
   }
 }
 
@@ -85,15 +137,10 @@ export async function promptLoadAfterInstall(modelPath: string): Promise<boolean
 
   if (p.isCancel(shouldLoad) || !shouldLoad) return false;
 
-  const spinner = p.spinner();
-  spinner.start(`Loading ${modelName} into memory...`);
   try {
-    await warmupModel(modelPath);
-    spinner.stop(`${paint(modelName, ANSI.cyan)} loaded and ready.`);
+    await loadModelWithProgress(modelPath);
     return true;
-  } catch (error) {
-    spinner.stop("Failed to load model");
-    p.log.error(error instanceof Error ? error.message : "Model loading failed.");
+  } catch {
     return false;
   }
 }

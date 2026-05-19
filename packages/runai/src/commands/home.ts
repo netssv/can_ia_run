@@ -2,7 +2,7 @@ import * as p from "@clack/prompts";
 import { basename } from "node:path";
 import { RUNAI_DEFAULT_PORT, RUNAI_VERSION } from "../config";
 import { isApiServerActive, isPortInUse, stopApiServerOnPort } from "../process-manager";
-import { isModelLoaded, getLoadedModelPath, warmupModel, unloadModel } from "../llamacpp";
+import { isModelLoaded, getLoadedModelPath, unloadModel } from "../llamacpp";
 import { getPromptOutput, usePromptLegend } from "../prompt-footer";
 import { ANSI, paint, gradientBrand, pluralize } from "../terminal";
 import { listInstalledModelOptions, stripGguf } from "../cli-utils";
@@ -10,6 +10,7 @@ import { handleChat } from "./chat";
 import { handleRecommend } from "./recommend-install";
 import { handleDeleteModels } from "./simple";
 import { handleServe } from "./simple";
+import { loadModelWithProgress } from "./model-lifecycle";
 
 function homeIntro(installedCount: number, apiActive: boolean, portInUse: boolean): string {
   const apiLabel = apiActive
@@ -105,15 +106,10 @@ export async function handleHome(): Promise<void> {
         continue;
       }
 
-      const modelName = stripGguf(basename(selected));
-      const spinner = p.spinner();
-      spinner.start(`Loading ${modelName} into memory...`);
       try {
-        await warmupModel(selected);
-        spinner.stop(`${paint(modelName, ANSI.cyan)} loaded and ready.`);
-      } catch (error) {
-        spinner.stop("Failed to load model");
-        p.log.error(error instanceof Error ? error.message : "Model loading failed.");
+        await loadModelWithProgress(selected);
+      } catch {
+        // Error already logged by loadModelWithProgress
       }
       continue;
     }

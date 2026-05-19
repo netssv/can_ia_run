@@ -1,8 +1,11 @@
 import * as p from "@clack/prompts";
 import { basename } from "node:path";
-import { runLlamaStreamWithSegments, warmupModel, isModelLoaded } from "../llamacpp";
-import { buildPrompt } from "../openai";
-import { getPromptOutput, setPromptFooter, usePromptLegend } from "../prompt-footer";
+import {
+  createPersistentChatSession, isModelLoaded,
+  type PersistentChatSession,
+} from "../llamacpp";
+import { loadModelWithProgress } from "./model-lifecycle";
+import { setPromptFooter } from "../prompt-footer";
 import {
   ANSI, paint,
   parseThinkingBlock, waveGradient,
@@ -30,14 +33,9 @@ export async function handleChat(
   p.log.message(`${paint("Model", ANSI.gray, true)} ${paint(basename(modelPath), ANSI.cyan)}`, { symbol: " " });
 
   if (!isModelLoaded()) {
-    const spinner = p.spinner();
-    spinner.start(`Loading ${basename(modelPath)} into memory...`);
     try {
-      await warmupModel(modelPath);
-      spinner.stop(`Model ready`);
-    } catch (error) {
-      spinner.stop(`Failed to load model`);
-      p.log.error(error instanceof Error ? error.message : "Model loading failed.");
+      await loadModelWithProgress(modelPath);
+    } catch {
       return;
     }
   }
@@ -47,7 +45,14 @@ export async function handleChat(
     { symbol: " " },
   );
 
-  const history: Array<{ role: "system" | "user" | "assistant"; content: string }> = [];
+  let chatSession: PersistentChatSession;
+  try {
+    chatSession = await createPersistentChatSession(modelPath);
+  } catch (error) {
+    p.log.error(error instanceof Error ? error.message : "Failed to start chat session.");
+    return;
+  }
+
   let showThinking = true;
   const renderChatFooter = (): void => {
     setPromptFooter(
@@ -55,6 +60,7 @@ export async function handleChat(
     );
   };
 
+  try {
   while (true) {
     renderChatFooter();
     const userInput = await p.text({ message: "You" });
@@ -74,8 +80,6 @@ export async function handleChat(
       break;
     }
 
-    history.push({ role: "user", content: prompt });
-    const recent = history.slice(-16);
     let cleanupInput: (() => void) | null = null;
     let thinkingAnimationTimer: ReturnType<typeof setInterval> | null = null;
     try {
@@ -181,13 +185,9 @@ export async function handleChat(
       }
 
       let thoughtSegmentOpen = false;
-      await runLlamaStreamWithSegments(
-        {
-          modelPath,
-          prompt: buildPrompt(recent),
-          temperature: 0.7,
-          maxTokens: 512,
-        },
+      await chatSession.prompt(
+        prompt,
+        { temperature: 0.7, maxTokens: 512 },
         (chunk) => {
           if (chunk.segmentType === "thought" || chunk.segmentType === "comment") {
             if (chunk.segmentStart && !thoughtSegmentOpen) {
@@ -282,8 +282,6 @@ export async function handleChat(
         metrics.push(`${paint("🧠", ANSI.magenta)} ${paint(`${formatSeconds(thinkEndedAt - thinkStartedAt)} thinking`, ANSI.magenta)}`);
       }
       p.log.info(metrics.join("  ·  "));
-
-      history.push({ role: "assistant", content: answer });
     } catch (error) {
       p.log.error(error instanceof Error ? error.message : "Inference failed");
     } finally {
@@ -291,5 +289,8 @@ export async function handleChat(
       cleanupInput?.();
     }
   }
-  setPromptFooter("");
+  } finally {
+    await chatSession.dispose();
+    setPromptFooter("");
+  }
 }

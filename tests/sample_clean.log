@@ -1,0 +1,8 @@
+# caniarun scan — 2026-07-03 12:44:02
+# Hardware: RTX 4090 | VRAM: 24.0 GB | RAM: 64.0 GB | BW: 1008 GB/s | Linux
+
+[🧈 Smooth as butter] 2026-07-03 12:44:02 Llama 3 8B @ Q4_K_M — 4.5 GB VRAM, ~156 tok/s, score 95, no issues
+[🔥 Dope run] 2026-07-03 12:44:02 Qwen 2.5 14B @ Q4_K_M — 8.1 GB VRAM, ~87 tok/s, score 82, no issues
+[😐 Meh usable] 2026-07-03 12:44:02 Command R 35B @ Q4_K_M — 20.2 GB VRAM, ~35 tok/s, score 68, RAM tight
+[🐌 Laggy vibes] 2026-07-03 12:44:02 Llama 3 70B @ Q4_K_M — 39.4 GB VRAM, ~14 tok/s, score 48, RAM tight, CPU offloading
+[🗑️ Trash mode] 2026-07-03 12:44:02 DeepSeek R1 671B @ Q4_K_M — 370.5 GB VRAM, 0 tok/s, score 0, exceeds all memory, Crash Risk

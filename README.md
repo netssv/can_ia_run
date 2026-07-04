@@ -19,7 +19,7 @@ You'll get ratings like:
 - 🐌 Laggy vibes
 - 🗑️ Trash mode
 
-It's basically the terminal version of [canirun.ai](https://canirun.ai).
+**Note:** This project is a fork from the original [canirun.ai](https://canirun.ai), simplified into a script that anyone can easily run directly from their terminal.
 
 ## Installation
 

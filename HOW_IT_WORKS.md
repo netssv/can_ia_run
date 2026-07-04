@@ -1,23 +1,23 @@
-# How `caniarun` Works
+# How `caniarun` Actually Works 🤓
 
-`caniarun` is a zero-configuration CLI tool that predicts how well a given Large Language Model (LLM) will run on your local hardware. It assigns a grade (from S to F) for each model across different quantization levels.
+`caniarun` is a zero-configuration CLI tool that predicts how well a given Large Language Model (LLM) will run on your local hardware. Instead of boring metrics, it assigns a fun, slang-filled vibe check (like "Smooth as butter" or "Trash mode") for each model across different compression levels.
 
-But how does it actually know if a model will run, and where does it get its data? 
+But how does it actually know if a model will run, and where does it get its data? Let's break it down.
 
 ---
 
-## 1. Where the Data Comes From
+## 1. Where Does It Get Its Data?
 
 The tool is completely offline and does not make any API calls. It relies on a rich, hardcoded catalog of models and GPUs built directly into its source code. 
 
-### The Model Catalog (`src/caniarun/models.py`)
-The tool ships with an internal database of **77 open-weights AI models** (like Llama 3, Qwen 2.5, DeepSeek R1, etc.). 
+### The Model Catalog (`src/caniarun/models/`)
+The tool ships with an internal database of **over 80 open-weights AI models** (like Llama 3, Qwen 2.5, DeepSeek R1, etc.). 
 For each model, the database knows:
 - **Parameter Count:** (e.g., 8 Billion, 70 Billion)
 - **Architecture:** Dense or Mixture of Experts (MoE)
 
-From the parameter count, `caniarun` mathematically calculates the exact RAM/VRAM required for **7 different quantization levels** (Q2_K, Q3_K_M, Q4_K_M, Q5_K_M, Q6_K, Q8_0, and F16). 
-- *Example:* A 7B parameter model in F16 (16-bit float) takes about 14GB of RAM. But in Q4 (4-bit quantization), it only requires about 4.3GB of RAM.
+Using just the parameter count, `caniarun` mathematically calculates the exact RAM/VRAM required for **7 different quantization levels** (Q2_K, Q3_K_M, Q4_K_M, Q5_K_M, Q6_K, Q8_0, and F16). 
+*For context:* A 7B parameter model in F16 (16-bit float) takes about 14GB of RAM. But in Q4 (4-bit quantization), it only requires about 4.3GB of RAM.
 
 ### The GPU Database (`src/caniarun/gpu_db.py`)
 To know the performance characteristics of your hardware, the tool contains a database of over **200 specific GPUs** (NVIDIA, AMD, Intel) and **18 Apple Silicon chips**.
@@ -44,33 +44,32 @@ Once it has a string like `"NVIDIA GeForce RTX 4090"`, it does a fuzzy search ag
 
 With your hardware specs and the model requirements in hand, the compatibility engine (`src/caniarun/compat.py`) evaluates the fit.
 
-### Step A: Does it fit in memory? (Status)
-The engine checks if the model's required VRAM fits into your hardware:
-- **`can-run`**: The model fits comfortably in your VRAM (or Apple Unified Memory).
-- **`tight`**: The model barely fits (leaves less than 15% headroom).
-- **`can-run-slow`**: The model is larger than your GPU's VRAM, but fits if we split it between your GPU and System RAM (CPU offloading).
-- **`cannot-run`**: The model is too big for your entire machine.
+### Step A: Does it even fit? (The Status)
+First, we check if the model fits in your memory:
+- **`can-run`**: Fits perfectly in your VRAM (or Apple Unified Memory).
+- **`tight`**: Barely fits (you have less than 15% breathing room).
+- **`can-run-slow`**: Too big for the GPU, so we have to split the load with your System RAM (CPU offloading). Expect a slowdown!
+- **`cannot-run`**: It's just too big for your entire machine. Don't even try.
 
-### Step B: How fast will it be? (Tokens per Second)
-LLM inference speed is almost entirely bound by **Memory Bandwidth**. 
-The tool estimates generation speed (Tokens/sec) using the formula:
+### Step B: How fast will it be? (Tokens/sec)
+AI speed is almost entirely limited by **Memory Bandwidth**. 
+We estimate your generation speed using this formula:
 ```
-Tokens/sec = (Hardware Bandwidth GB/s ÷ Model VRAM Size GB) × Efficiency Factor
+Tokens/sec = (Hardware Bandwidth GB/s ÷ Model VRAM Size GB) × Efficiency
 ```
-*(Efficiency is generally ~70% for discrete GPUs, and drops drastically if the model is offloaded to the CPU).*
+*(Fun fact: Efficiency is usually around 70% for standard GPUs, but it tanks hard if you have to offload to your CPU).*
 
 ### Step C: The Final Score (0-100)
-The tool calculates a final score based on a weighted average of:
-1. **Speed (55%):** How many tokens per second you'll get.
-2. **Headroom (35%):** How much VRAM is left over for context length and OS tasks.
-3. **Quality Bonus:** A slight bump for larger, smarter models.
-4. **Fit Penalty:** A massive penalty if the model has to offload to system RAM (`can-run-slow`).
+We mash everything together into a final score, weighted like this:
+1. **Speed (55%):** Because waiting for text generation sucks.
+2. **Headroom (35%):** So you have VRAM left over for your OS or large context windows.
+3. **Quality Bonus:** A little bump if the model is larger/smarter.
+4. **Fit Penalty:** A massive drop if the model spills over into system RAM (`can-run-slow`).
 
-### Step D: The Grade (S to F)
-Finally, that 0-100 score is translated into a human-readable tier:
-- **S (85-100)**: Lightning fast, fits perfectly.
-- **A (70-84)**: Runs very well.
-- **B (55-69)**: Decent, usable experience.
-- **C (40-54)**: Tight fit or slight offloading. 
-- **D (20-39)**: Heavy offloading, barely readable speed.
-- **F (0-19)**: Too heavy, system will likely crash or freeze.
+### Step D: The Vibe Check
+Finally, that 0-100 score gets translated into a slang vibe level you can actually understand:
+- **🧈 Smooth as butter (85-100)**: Lightning fast, fits perfectly.
+- **🔥 Dope run (70-84)**: Runs great, no complaints.
+- **😐 Meh usable (55-69)**: It works, but it's not breaking any speed records.
+- **🐌 Laggy vibes (40-54)**: Tight fit or slight offloading. It'll test your patience.
+- **🗑️ Trash mode (0-39)**: Heavy offloading or crashes. Just don't.

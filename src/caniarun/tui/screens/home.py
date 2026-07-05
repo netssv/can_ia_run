@@ -7,15 +7,11 @@ from textual.containers import Vertical, Center, Horizontal
 from caniarun.tui.widgets.hardware_banner import HardwareBanner
 
 LOGO = (
-    "[bold yellow]"
-    "    __\n"
-    "  ('v')\n"
+    "[bold yellow]  ('v')\n"
     " //-=-\\\\\n"
     " (\\_=_/)\n"
-    "  ^^ ^^\n"
-    "[/bold yellow]"
-    "[bold cyan]  caniarun[/bold cyan]\n"
-    "[dim]  AI Hardware Checker[/dim]"
+    "  ^^ ^^[/bold yellow]\n"
+    "[bold cyan]caniarun[/bold cyan] [dim]· AI Hardware Checker[/dim]"
 )
 
 class HomeScreen(Screen):
@@ -33,7 +29,7 @@ class HomeScreen(Screen):
                 yield Static("", id="quick-dashboard")
 
             with Center(id="share-btn-center"):
-                yield Button("🔗 Share / Compare hardware", id="btn-share", variant="default")
+                yield Button("Share / Compare hardware ID", id="btn-share", variant="default")
 
             with Center():
                 yield Static("What do you want to do?", classes="menu-prompt")

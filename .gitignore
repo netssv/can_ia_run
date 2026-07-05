@@ -23,6 +23,7 @@ pnpm-debug.log*
 .vercel
 .env*.local
 
+# Cache files
 src/caniarun/__pycache__/*
 src/caniarun/benchmarklog/__pycache__/*
 src/caniarun/models/__pycache__/*

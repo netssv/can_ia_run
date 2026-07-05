@@ -1,8 +1,8 @@
 from textual.app import ComposeResult
 from textual.screen import Screen
-from textual.widgets import Static, OptionList, Button
+from textual.widgets import Static, OptionList
 from textual.widgets.option_list import Option
-from textual.containers import Vertical, Center, Horizontal
+from textual.containers import Vertical, Center
 
 from caniarun.tui.widgets.hardware_banner import HardwareBanner
 
@@ -28,12 +28,6 @@ class HomeScreen(Screen):
             with Center():
                 yield Static("", id="quick-dashboard")
 
-            with Center(id="share-btn-center"):
-                yield Button("Share / Compare hardware ID", id="btn-share", variant="default")
-
-            with Center():
-                yield Static("What do you want to do?", classes="menu-prompt")
-
             with Center():
                 yield OptionList(
                     Option("Show all models (log format)", id="opt-all"),
@@ -44,9 +38,11 @@ class HomeScreen(Screen):
                     Option("─" * 28, id="sep-3", disabled=True),
                     Option("Export log file", id="opt-export"),
                     Option("─" * 28, id="sep-4", disabled=True),
-                    Option("Exit", id="opt-exit"),
-                    Option("─" * 28, id="sep-5", disabled=True),
                     Option("Benchmark Run Log", id="opt-bench"),
+                    Option("─" * 28, id="sep-5", disabled=True),
+                    Option("Exit", id="opt-exit"),
+                    Option("─" * 28, id="sep-6", disabled=True),
+                    Option("Share / Compare hardware ID", id="opt-share"),
                     id="main-menu"
                 )
 
@@ -100,8 +96,6 @@ class HomeScreen(Screen):
         elif opt_id == "opt-bench":
             from caniarun.tui.screens.benchmark_log.screen import BenchmarkLogScreen
             self.app.push_screen(BenchmarkLogScreen())
-
-    def on_button_pressed(self, event: Button.Pressed) -> None:
-        if event.button.id == "btn-share":
+        elif opt_id == "opt-share":
             from caniarun.tui.screens.share_screen import ShareScreen
             self.app.push_screen(ShareScreen())

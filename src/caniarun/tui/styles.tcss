@@ -1,0 +1,114 @@
+/* Main application styles */
+Screen {
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+#home-layout {
+    align: center middle;
+    height: 100%;
+}
+
+#ascii-logo {
+    text-align: center;
+    margin-bottom: 1;
+    color: #00ff9c;
+}
+
+#quick-dashboard {
+    text-align: center;
+    margin-bottom: 1;
+    background: #1e293b;
+    padding: 1 2;
+    border: round #334155;
+    width: 60;
+}
+
+HardwareBanner {
+    border: round #00ff9c;
+    padding: 0 1;
+    width: 60;
+    margin-bottom: 1;
+    content-align: center middle;
+    background: #1e293b;
+}
+
+#share-id-input {
+    border: none;
+    background: #0f172a;
+    color: #94a3b8;
+    height: 1;
+    padding: 0;
+    margin-top: 1;
+    text-align: center;
+}
+
+.hardware-content {
+    color: #22d3ee; /* cyan */
+}
+
+.warning-text {
+    color: #f97316; /* orange */
+    text-style: bold;
+}
+
+.menu-prompt {
+    text-style: bold;
+    margin-bottom: 1;
+    color: #f97316;
+    text-align: center;
+}
+
+OptionList {
+    width: 40;
+    border: solid #334155;
+    background: #1e293b;
+}
+
+OptionList > .option-list--option {
+    padding: 0 1;
+}
+
+OptionList > .option-list--option-highlighted {
+    background: #00ff9c;
+    color: #0f172a;
+    text-style: bold;
+}
+
+/* Export Log Screen */
+#export-container {
+    align: center middle;
+    height: 100%;
+}
+#export-msg {
+    text-align: center;
+    margin-bottom: 2;
+    color: #e2e8f0;
+}
+Button {
+    margin: 1;
+}
+
+/* Tables */
+DataTable {
+    background: #0f172a;
+    border: none;
+}
+
+/* Tabs */
+TabbedContent {
+    height: 100%;
+}
+TabPane {
+    padding: 1 2;
+}
+
+/* Header & Footer */
+Header {
+    background: #1e293b;
+    color: #00ff9c;
+}
+Footer {
+    background: #1e293b;
+    color: #64748b;
+}

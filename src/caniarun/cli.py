@@ -5,53 +5,6 @@ from caniarun.hardware import detect
 from caniarun.compat import evaluate_all
 from caniarun.output import format_hw_panel, render_table, render_json, render_analysis_report, render_dashboard
 
-def interactive_menu(hw, results, args):
-    """Present interactive menu after dashboard."""
-    import sys
-    from caniarun.log_emitter import emit_log
-    
-    while True:
-        print("\nWhat do you want to do?")
-        print("  [1] Show all models (log format)")
-        print("  [2] Filter by family (e.g., Llama, Qwen)")
-        print("  [3] Show full compatibility table")
-        print("  [4] Export log file")
-        print("  [5] Exit")
-        
-        try:
-            choice = input("> ").strip()
-        except KeyboardInterrupt:
-            print("\nExiting...")
-            sys.exit(0)
-        
-        if choice == "1":
-            print("\n--- All Models ---")
-            render_dashboard(hw, results) # Might need a way to show *all* without limit, but for now we can just use the table or a custom loop
-            # Let's just print them all as logs
-            from caniarun.log_emitter import generate_log_line
-            for r in results:
-                best_q = max(r.quants, key=lambda q: {"S":6,"A":5,"B":4,"C":3,"D":2,"F":1,"?":0}.get(q.grade, 0))
-                print(generate_log_line(r.model.name, best_q.quant_name, best_q.vram_gb or 0, best_q.toks_per_sec or 0, best_q.score, r.best_grade, hw, best_q.status))
-        elif choice == "2":
-            family = input("Enter family (e.g., Llama): ").strip().lower()
-            filtered = [r for r in results if family in r.model.family.lower()]
-            if not filtered:
-                print(f"No models found for family '{family}'.")
-            else:
-                render_dashboard(hw, filtered)
-        elif choice == "3":
-            format_hw_panel(hw)
-            render_table(results, show_f16=args.all_quants, specific_quant=args.quant)
-        elif choice == "4":
-            filepath = input("Enter filename (default: caniarun.log): ").strip()
-            if not filepath: filepath = "caniarun.log"
-            emit_log(hw, results, filepath, args.all_quants)
-            print(f"Log generated successfully at {filepath}")
-        elif choice == "5":
-            break
-        else:
-            print("Invalid choice, please try again.")
-
 def main():
     parser = argparse.ArgumentParser(description="canirun.ai CLI - AI model compatibility checker")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
@@ -170,10 +123,14 @@ def main():
         format_hw_panel(hw)
         render_table(results, show_f16=args.all_quants, specific_quant=args.quant)
     else:
-        # Default user-friendly behavior: Run dashboard
-        render_dashboard(hw, results)
+        # Default user-friendly behavior: Run Textual TUI
         if sys.stdin.isatty():
-            interactive_menu(hw, results, args)
+            from caniarun.tui.app import CaniarunApp
+            app = CaniarunApp(hw=hw, results=results)
+            app.run()
+        else:
+            # Fallback for non-interactive shells
+            render_dashboard(hw, results)
         
     return 0
 

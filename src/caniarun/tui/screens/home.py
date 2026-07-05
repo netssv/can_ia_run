@@ -1,6 +1,7 @@
 from textual.app import ComposeResult
 from textual.screen import Screen
 from textual.widgets import Static, OptionList
+from textual.widgets.option_list import Option
 from textual.containers import Vertical, Center
 
 from caniarun.tui.widgets.hardware_banner import HardwareBanner
@@ -36,12 +37,17 @@ class HomeScreen(Screen):
 
             with Center():
                 yield OptionList(
-                    "Show all models (log format)",
-                    "Filter by family (e.g., Llama, Qwen)",
-                    "Show full compatibility table",
-                    "Export log file",
-                    "Exit",
-                    "Benchmark Run Log",
+                    Option("Show all models (log format)", id="opt-all"),
+                    Option("─" * 28, id="sep-1", disabled=True),
+                    Option("Filter by family (e.g., Llama, Qwen)", id="opt-family"),
+                    Option("─" * 28, id="sep-2", disabled=True),
+                    Option("Show full compatibility table", id="opt-compat"),
+                    Option("─" * 28, id="sep-3", disabled=True),
+                    Option("Export log file", id="opt-export"),
+                    Option("─" * 28, id="sep-4", disabled=True),
+                    Option("Exit", id="opt-exit"),
+                    Option("─" * 28, id="sep-5", disabled=True),
+                    Option("Benchmark Run Log", id="opt-bench"),
                     id="main-menu"
                 )
 
@@ -77,21 +83,21 @@ class HomeScreen(Screen):
         self.query_one("#main-menu", OptionList).focus()
 
     def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
-        idx = event.option_index
-        if idx == 0:
+        opt_id = event.option.id
+        if opt_id == "opt-all":
             from caniarun.tui.screens.all_models import AllModelsScreen
             self.app.push_screen(AllModelsScreen())
-        elif idx == 1:
+        elif opt_id == "opt-family":
             from caniarun.tui.screens.filter_family import FilterFamilyScreen
             self.app.push_screen(FilterFamilyScreen())
-        elif idx == 2:
+        elif opt_id == "opt-compat":
             from caniarun.tui.screens.compat_table import CompatTableScreen
             self.app.push_screen(CompatTableScreen())
-        elif idx == 3:
+        elif opt_id == "opt-export":
             from caniarun.tui.screens.export_log import ExportLogScreen
             self.app.push_screen(ExportLogScreen())
-        elif idx == 4:
+        elif opt_id == "opt-exit":
             self.app.exit()
-        elif idx == 5:
+        elif opt_id == "opt-bench":
             from caniarun.tui.screens.benchmark_log.screen import BenchmarkLogScreen
             self.app.push_screen(BenchmarkLogScreen())

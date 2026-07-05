@@ -136,9 +136,51 @@ def _detect_linux_lspci() -> Optional[dict]:
         pass
     return None
 
+def _detect_android() -> Optional[dict]:
+    import os
+    is_android = "ANDROID_ROOT" in os.environ or "ANDROID_DATA" in os.environ or os.path.exists("/system/build.prop")
+    if not is_android:
+        return None
+        
+    gpu_name = "Android Mobile Device"
+    bw = 30.0 # conservative mobile memory bandwidth (LPDDR4x/5)
+    
+    try:
+        # Try to get the SoC name via getprop
+        result = subprocess.run(["getprop", "ro.soc.model"], capture_output=True, text=True)
+        if result.stdout.strip():
+            gpu_name = result.stdout.strip()
+        else:
+            result = subprocess.run(["getprop", "ro.board.platform"], capture_output=True, text=True)
+            if result.stdout.strip():
+                gpu_name = result.stdout.strip()
+    except Exception:
+        pass
+        
+    return {
+        "name": gpu_name,
+        "vendor": "Mobile",
+        "vram_gb": None,
+        "bw": bw
+    }
+
 def detect() -> HardwareInfo:
     plat = platform.system()
     system_ram = _detect_system_ram()
+    
+    # 0. Try Android first (it reports as Linux often)
+    android_info = _detect_android()
+    if android_info:
+        return HardwareInfo(
+            gpu_name=android_info["name"],
+            gpu_vendor=android_info["vendor"],
+            vram_gb=None,
+            total_usable_ram=system_ram,
+            system_ram_gb=system_ram,
+            memory_bandwidth=android_info["bw"],
+            is_apple_silicon=False,
+            platform="Android"
+        )
     
     # 1. Try Apple Silicon
     apple_info = _detect_apple_silicon()

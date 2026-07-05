@@ -19,7 +19,7 @@ class ShareScreen(ModalScreen):
         align: center middle;
     }
     #share-dialog {
-        width: 64;
+        width: 76;
         background: #1e293b;
         border: round #00ff9c;
         padding: 1 2;
@@ -34,8 +34,8 @@ class ShareScreen(ModalScreen):
         color: #00ff9c;
         text-align: center;
         border: round #334155;
-        padding: 0 1;
-        height: 1;
+        padding: 1 1;
+        height: auto;
         margin-bottom: 1;
     }
     #copy-status {

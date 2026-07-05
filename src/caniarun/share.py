@@ -8,9 +8,14 @@ def generate_share_id(hw: HardwareInfo) -> str:
     bw = hw.memory_bandwidth or 0.0
     apple = 1 if hw.is_apple_silicon else 0
     
-    # We strip out pipes from the name to avoid breaking the split
-    gpu = (hw.gpu_name or "Unknown").replace('|', ' ')
-    plat = (hw.platform or "Unknown").replace('|', ' ')
+    # We strip out pipes from the name to avoid breaking the split, and truncate
+    gpu = (hw.gpu_name or "Unknown").replace('|', ' ').strip()
+    if len(gpu) > 30:
+        gpu = gpu[:30].strip()
+    
+    plat = (hw.platform or "Unknown").replace('|', ' ').strip()
+    if len(plat) > 15:
+        plat = plat[:15].strip()
 
     # Format: vram|ram|bw|apple|gpu|platform
     raw = f"{vram:.1f}|{ram:.1f}|{bw:.1f}|{apple}|{gpu}|{plat}"

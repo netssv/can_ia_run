@@ -98,4 +98,15 @@ class HomeScreen(Screen):
             self.app.push_screen(BenchmarkLogScreen())
         elif opt_id == "opt-share":
             from caniarun.tui.screens.share_screen import ShareScreen
-            self.app.push_screen(ShareScreen(hw=self.app.hw))
+
+            def on_share_close(result) -> None:
+                if result is not None:
+                    hw, results = result
+                    self.app.hw = hw
+                    self.app.results = results
+                    # Refresh banner
+                    self.query_one(HardwareBanner).update_hw(hw)
+                    # Refresh dashboard counts
+                    self.on_mount()
+
+            self.app.push_screen(ShareScreen(hw=self.app.hw), on_share_close)

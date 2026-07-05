@@ -101,14 +101,10 @@ class ShareScreen(ModalScreen):
             try:
                 hw = decode_share_id(raw)
                 results = evaluate_all(hw)
-                self.app.hw = hw
-                self.app.results = results
-                self.query_one("#compare-status", Static).update(
-                    f"[green]Loaded: VRAM={hw.vram_gb or 0:.1f} GB  RAM={hw.system_ram_gb or 0:.1f} GB[/green]"
-                )
-                self.set_timer(1.5, self.dismiss)
+                # Pass the new hw+results back to the caller via dismiss
+                self.dismiss((hw, results))
             except ValueError as e:
-                self.query_one("#compare-status", Static).update(f"[red]{e}[/red]")
+                self.query_one("#compare-status", Static).update(f"[red]Invalid ID: {e}[/red]")
 
     def _copy_to_clipboard(self, text: str) -> None:
         import subprocess, shutil

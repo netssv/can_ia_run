@@ -98,4 +98,4 @@ class HomeScreen(Screen):
             self.app.push_screen(BenchmarkLogScreen())
         elif opt_id == "opt-share":
             from caniarun.tui.screens.share_screen import ShareScreen
-            self.app.push_screen(ShareScreen())
+            self.app.push_screen(ShareScreen(hw=self.app.hw))

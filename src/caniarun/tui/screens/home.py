@@ -1,8 +1,8 @@
 from textual.app import ComposeResult
 from textual.screen import Screen
-from textual.widgets import Static, OptionList
+from textual.widgets import Static, OptionList, Button
 from textual.widgets.option_list import Option
-from textual.containers import Vertical, Center
+from textual.containers import Vertical, Center, Horizontal
 
 from caniarun.tui.widgets.hardware_banner import HardwareBanner
 
@@ -31,6 +31,9 @@ class HomeScreen(Screen):
 
             with Center():
                 yield Static("", id="quick-dashboard")
+
+            with Center(id="share-btn-center"):
+                yield Button("🔗 Share / Compare hardware", id="btn-share", variant="default")
 
             with Center():
                 yield Static("What do you want to do?", classes="menu-prompt")
@@ -101,3 +104,8 @@ class HomeScreen(Screen):
         elif opt_id == "opt-bench":
             from caniarun.tui.screens.benchmark_log.screen import BenchmarkLogScreen
             self.app.push_screen(BenchmarkLogScreen())
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "btn-share":
+            from caniarun.tui.screens.share_screen import ShareScreen
+            self.app.push_screen(ShareScreen())

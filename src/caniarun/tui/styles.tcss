@@ -75,6 +75,18 @@ OptionList > .option-list--option-highlighted {
     text-style: bold;
 }
 
+#btn-share {
+    background: #1e293b;
+    color: #64748b;
+    border: solid #334155;
+    height: 1;
+    margin-bottom: 1;
+}
+#btn-share:hover {
+    background: #334155;
+    color: #e2e8f0;
+}
+
 /* Export Log Screen */
 #export-container {
     align: center middle;

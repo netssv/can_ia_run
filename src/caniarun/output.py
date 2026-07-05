@@ -13,7 +13,7 @@ console = Console()
 
 def format_hw_panel(hw: HardwareInfo) -> None:
     gpu_str = hw.gpu_name if hw.gpu_name else "No dedicated GPU detected"
-    vram_str = f"{hw.vram_gb:.1f} GB" if hw.vram_gb else "N/A"
+    vram_str = f"{hw.vram_gb:.1f} GB" if hw.vram_gb else "Shared (Uses RAM)"
     bw_str = f"{hw.memory_bandwidth:.0f} GB/s" if hw.memory_bandwidth else "Unknown bandwidth"
     ram_str = f"{hw.system_ram_gb:.1f} GB" if hw.system_ram_gb else "N/A"
     

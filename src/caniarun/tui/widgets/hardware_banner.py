@@ -27,8 +27,13 @@ class HardwareBanner(Static):
 
     def _refresh_content(self) -> None:
         gpu_str = self.hw.gpu_name if self.hw.gpu_name else "Unknown GPU"
-        vram_str = f"{self.hw.vram_gb:.1f} GB" if self.hw.vram_gb else "[warning-text]⚠️ VRAM Not Detected[/warning-text]"
-        ram_str = f"{self.hw.system_ram_gb:.1f} GB" if self.hw.system_ram_gb else "N/A"
+        if self.hw.is_apple_silicon:
+            vram_str = f"Unified: {self.hw.system_ram_gb:.1f} GB"
+            ram_str = "N/A"
+        else:
+            vram_str = f"{self.hw.vram_gb:.1f} GB" if self.hw.vram_gb else "[dim]Shared (Uses RAM)[/dim]"
+            ram_str = f"{self.hw.system_ram_gb:.1f} GB" if self.hw.system_ram_gb else "N/A"
+        
         share_id = generate_share_id(self.hw)
 
         text = (

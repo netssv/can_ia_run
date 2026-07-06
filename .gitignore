@@ -31,4 +31,10 @@ src/caniarun/tui/__pycache__/*
 src/caniarun/tui/screens/__pycache__/*
 src/caniarun/tui/widgets/__pycache__/*
 src/caniarun/tui/screens/benchmark_log/__pycache__/*
-__pycache__/
+__pycache__/*
+src/caniarun/output/__pycache__/*
+src/caniarun/utils/__pycache__/*
+src/caniarun/logger/__pycache__/*
+src/caniarun/logger/terminal/__pycache__/*
+src/caniarun/logger/terminal/widgets/__pycache__/*
+src/caniarun/logger/terminal/widgets/logs/__pycache__/*

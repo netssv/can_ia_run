@@ -72,7 +72,7 @@ class HomeScreen(Screen):
             elif best_status in ("cannot-run", "can-run-slow"):
                 cannot_run += 1
 
-        text = f"[bold green]✅ {can_run} fast models[/]   [bold yellow]⚠ {tight} tight[/]   [bold red]❌ {cannot_run} slow/no[/]"
+        text = f"[bold green]🧈/🔥 {can_run} Smooth/Dope[/]   [bold yellow]😐 {tight} Meh usable[/]   [bold red]🐌/🗑️ {cannot_run} Laggy/Trash[/]"
         self.query_one("#quick-dashboard", Static).update(text)
         # Ensure keyboard focus always starts on the menu, not the share ID input
         self.query_one("#main-menu", OptionList).focus()

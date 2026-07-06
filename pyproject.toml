@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "caniarun"
-version = "0.1.2"
+version = "0.1.3"
 description = "A zero-config Python CLI that detects local hardware and prints S–F grades for AI models"
 readme = "README.md"
 requires-python = ">=3.9"

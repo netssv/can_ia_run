@@ -45,28 +45,43 @@ class MainScreen(Screen):
 
     CSS = """
     #main-header-container {
-        padding: 0;
-        margin-bottom: 0;
+        padding: 1 2 0 2;
         height: auto;
+        background: #0f172a;
+    }
+    HardwareBanner {
+        /* Override styles.tcss fixed width */
+        width: 100%;
+        margin-bottom: 1;
+        border: round #00ff9c;
+        padding: 0 1;
         background: #1e293b;
     }
-    #quick-dashboard {
-        text-align: center;
+    #header-tools {
+        height: 3;
         margin-bottom: 1;
     }
-    #action-bar {
-        height: 3;
-        align: center middle;
+    #quick-dashboard {
+        /* Override styles.tcss fixed width */
+        width: 1fr;
+        padding: 0 1;
+        content-align: left middle;
+        background: transparent;
+        border: none;
     }
-    #action-bar Button {
-        margin: 0 1;
+    #action-buttons {
+        width: auto;
+        align: right middle;
+    }
+    #action-buttons Button {
+        margin-left: 1;
     }
     #filter-container {
-        padding: 0 1;
+        padding: 0 2;
         margin: 1 0;
         height: 3;
     }
-    #filter-input-1, #filter-input-2 {
+    .filter-input {
         width: 100%;
     }
     DataTable {
@@ -89,16 +104,15 @@ class MainScreen(Screen):
         
         # 1. TOP SECTION (Always Visible)
         with Vertical(id="main-header-container"):
-            with Center():
-                yield HardwareBanner(self.app.hw, id="hardware-banner")
+            yield HardwareBanner(self.app.hw, id="hardware-banner")
             
-            with Center():
+            with Horizontal(id="header-tools"):
                 yield Static("", id="quick-dashboard")
                 
-            with Horizontal(id="action-bar"):
-                yield Button("🔄 Share / Compare ID", id="btn-share", variant="primary")
-                yield Button("💾 Export Benchmark JSON", id="btn-export", variant="success")
-                yield Button("❌ Quit", id="btn-quit", variant="error")
+                with Horizontal(id="action-buttons"):
+                    yield Button("🔄 Share / Compare ID", id="btn-share", variant="primary")
+                    yield Button("💾 Export JSON", id="btn-export", variant="success")
+                    yield Button("❌ Quit", id="btn-quit", variant="error")
 
         # 2. MAIN BODY (Tabs)
         with TabbedContent(id="main-tabs"):

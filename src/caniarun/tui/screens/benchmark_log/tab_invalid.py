@@ -43,9 +43,17 @@ class TabInvalid(Container):
         key_fn = SORT_KEYS.get(self._sort_col, lambda r: r.id)
         sorted_records = sorted(self._records, key=key_fn, reverse=not self._sort_asc)
 
-        for r in sorted_records:
-            errors = " | ".join(r.validation_errors)
-            table.add_row(r.id, r.source, r.model_name, f"[red]{errors}[/red]")
+        if not sorted_records:
+            table.add_row(
+                "-",
+                "-",
+                "[dim italic]No invalid benchmark data detected.[/dim italic]",
+                "[dim]Corrupted models, impossible VRAM reqs, or invalid math errors will appear here if detected.[/dim]"
+            )
+        else:
+            for r in sorted_records:
+                errors = " | ".join(r.validation_errors)
+                table.add_row(r.id, r.source, r.model_name, f"[red]{errors}[/red]")
 
     def on_data_table_header_selected(self, event: DataTable.HeaderSelected) -> None:
         col_index = event.column_index

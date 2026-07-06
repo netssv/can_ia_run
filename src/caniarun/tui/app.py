@@ -3,7 +3,7 @@ from textual.widgets import LoadingIndicator
 from textual import work
 from caniarun.hardware import detect, HardwareInfo
 from caniarun.compat import evaluate_all
-from caniarun.tui.screens.home import HomeScreen
+from caniarun.tui.screens.main_screen import MainScreen
 
 class CaniarunApp(App):
     """Main Textual application for caniarun."""
@@ -15,7 +15,7 @@ class CaniarunApp(App):
         self.hw = hw
         self.results = results
         self.benchmark_records = []
-        self.benchmark_source = "live"   # "live" or a share_id string when imported
+        self.benchmark_source = "live"
         
     def compose(self) -> ComposeResult:
         yield LoadingIndicator(id="loading")
@@ -39,16 +39,18 @@ class CaniarunApp(App):
     def _finish_loading(self) -> None:
         # Run the live benchmark pipeline on real evaluation results
         from caniarun.benchmarklog.runner import run_benchmark
+        from caniarun.share import generate_share_id
         
         self.benchmark_records = run_benchmark(self.hw, self.results)
+        self.benchmark_source = generate_share_id(self.hw)
 
-        # Remove loading and go to home screen
+        # Remove loading and go to main screen
         try:
             self.query_one("#loading").remove()
         except Exception:
             pass
             
-        self.push_screen(HomeScreen())
+        self.push_screen(MainScreen())
 
 if __name__ == "__main__":
     app = CaniarunApp()

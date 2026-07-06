@@ -147,14 +147,15 @@ class MainScreen(Screen):
         local_id = generate_share_id(self.app.hw)
         if getattr(self.app, "benchmark_source", local_id) != local_id:
             hw_meta = getattr(self.app, "benchmark_hw_meta", {})
-            gpu_name = hw_meta.get("gpu_name", "Unknown GPU")
-            platform = hw_meta.get("platform", "Unknown OS")
-            source_id = self.app.benchmark_source
+            gpu_name = hw_meta.get("gpu_name", "Unknown GPU").replace("[", "\\[")
+            platform = hw_meta.get("platform", "Unknown OS").replace("[", "\\[")
+            source_id = getattr(self.app, "benchmark_source", "").replace("[", "\\[")
             display_id = f"{source_id[:20]}..." if len(source_id) > 20 else source_id
             
             # Subvert the banner content directly for imported
-            banner.query_one("#hw-gpu").update(f"[cyan]📂 Imported:[/] [bold]{gpu_name}[/bold]")
-            banner.query_one("#hw-ram").update(f"[cyan]Share ID:[/] [dim]{display_id}[/dim] · {platform}")
+            text = f"[cyan]📂 Imported:[/] [bold]{gpu_name}[/bold] · {platform}"
+            banner.query_one(".hardware-content", Static).update(text)
+            banner.query_one("#share-id-input", Static).update(f"[dim]Share ID:[/] [dim]{display_id}[/dim]")
         else:
             banner.update_hw(self.app.hw)
 

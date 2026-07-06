@@ -27,6 +27,8 @@ class HardwareBanner(Static):
 
     def _refresh_content(self) -> None:
         gpu_str = self.hw.gpu_name if self.hw.gpu_name else "Unknown GPU"
+        gpu_str = gpu_str.replace("[", "\\[")
+        
         if self.hw.is_apple_silicon:
             vram_str = f"Unified: {self.hw.system_ram_gb:.1f} GB"
             ram_str = "N/A"
@@ -34,10 +36,11 @@ class HardwareBanner(Static):
             vram_str = f"{self.hw.vram_gb:.1f} GB" if self.hw.vram_gb else "[dim]Shared (Uses RAM)[/dim]"
             ram_str = f"{self.hw.system_ram_gb:.1f} GB" if self.hw.system_ram_gb else "N/A"
         
+        platform_str = (self.hw.platform or "Unknown").replace("[", "\\[")
         share_id = generate_share_id(self.hw)
 
         text = (
-            f"[bold cyan]💻[/]  {gpu_str} · VRAM: {vram_str} · RAM: {ram_str} · {self.hw.platform}"
+            f"[bold cyan]💻[/]  {gpu_str} · VRAM: {vram_str} · RAM: {ram_str} · {platform_str}"
         )
         self.query_one(".hardware-content", Static).update(text)
         self.query_one("#share-id-input", Static).update(f"[dim]share id:[/dim]  [bold]{share_id}[/bold]")

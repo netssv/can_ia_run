@@ -33,13 +33,20 @@ def run_benchmark(hw: HardwareInfo, results: List[ModelResult]) -> List[Normaliz
 def export_benchmark(
     records: List[NormalizedEvaluation],
     hw: HardwareInfo,
-    filepath: str = "benchmark_export.json",
+    filepath: str = "",
 ) -> str:
     """
     Export benchmark records + hardware profile to a JSON file.
+    Filename auto-uses the Share ID if no filepath given.
     Returns the absolute path of the exported file.
     """
     share_id = generate_share_id(hw)
+
+    if not filepath:
+        # Use truncated share_id as filename: benchmark_HW2-MC4w.json
+        safe_id = share_id.replace("/", "_").replace("=", "")[:20]
+        filepath = f"benchmark_{safe_id}.json"
+
 
     data = {
         "share_id": share_id,

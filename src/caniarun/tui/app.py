@@ -15,6 +15,7 @@ class CaniarunApp(App):
         self.hw = hw
         self.results = results
         self.benchmark_records = []
+        self.benchmark_source = "live"   # "live" or a share_id string when imported
         
     def compose(self) -> ComposeResult:
         yield LoadingIndicator(id="loading")

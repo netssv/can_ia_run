@@ -31,3 +31,4 @@ src/caniarun/tui/__pycache__/*
 src/caniarun/tui/screens/__pycache__/*
 src/caniarun/tui/widgets/__pycache__/*
 src/caniarun/tui/screens/benchmark_log/__pycache__/*
+__pycache__/

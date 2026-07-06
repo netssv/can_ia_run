@@ -104,6 +104,19 @@ class HomeScreen(Screen):
                     hw, results = result
                     self.app.hw = hw
                     self.app.results = results
+                    
+                    # Generate benchmark records for the loaded Share ID
+                    from caniarun.benchmarklog.runner import run_benchmark
+                    from caniarun.share import generate_share_id
+                    
+                    self.app.benchmark_records = run_benchmark(hw, results)
+                    # Set the source as the Share ID so the Benchmark Log banner shows it's imported
+                    self.app.benchmark_source = generate_share_id(hw)
+                    self.app.benchmark_hw_meta = {
+                        "gpu_name": hw.gpu_name or "Unknown GPU",
+                        "platform": hw.platform or "Unknown"
+                    }
+                    
                     # Refresh banner
                     self.query_one(HardwareBanner).update_hw(hw)
                     # Refresh dashboard counts

@@ -60,13 +60,13 @@ class TabMetrics(Container):
         lines.append(f"[bold]── 🎯 Hardware Report Card ──[/bold]\n")
         lines.append(f"  [{grade_color}]{grade_emoji}  {grade_label}[/{grade_color}]\n")
         lines.append(
-            f"  Tu hardware puede correr [bold]{runnable_models}[/bold] de [bold]{total_models}[/bold] "
-            f"modelos únicos ([bold]{runnable_pct}%[/bold]) sin problemas."
+            f"  Your hardware can run [bold]{runnable_models}[/bold] of [bold]{total_models}[/bold] "
+            f"unique models ([bold]{runnable_pct}%[/bold]) without issues."
         )
         lines.append(
-            f"  La familia con más modelos compatibles es [cyan][bold]{top_family}[/bold][/cyan]."
+            f"  The family with the most compatible models is [cyan][bold]{top_family}[/bold][/cyan]."
         )
-        lines.append(f"  Puntuación promedio: [bold]{m.avg_score}[/bold]/100\n")
+        lines.append(f"  Average score: [bold]{m.avg_score}[/bold]/100\n")
 
         # ── Vibe Breakdown ──────────────────────────────────────────────────
         lines.append(f"[bold]── 🎨 Vibe Breakdown ──[/bold]\n")

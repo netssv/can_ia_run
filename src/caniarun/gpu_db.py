@@ -1,264 +1,45 @@
-from dataclasses import dataclass
+"""
+gpu_db.py  –  Public GPU/Apple database API.
 
-@dataclass(frozen=True)
-class GPUSpec:
-    vram: float
-    bw: float
-    cores: int
+Data is kept in gpu_data/ sub-modules (split by vendor).
+This module merges them into the GPU_DB and APPLE_DB dicts that the
+rest of the codebase already imports, preserving full backward compatibility.
+"""
+# Re-export the dataclasses from gpu_specs so existing `from .gpu_db import GPUSpec` imports keep working
+from .gpu_specs import GPUSpec, AppleSpec  # noqa: F401
 
-@dataclass(frozen=True)
-class AppleSpec:
-    ram: float
-    bw: float
-    cpu_cores: int
-    gpu_cores: int
 
-GPU_DB: dict[str, GPUSpec] = {
-    "RTX 5090": GPUSpec(vram=32.0, bw=1792.0, cores=21760),
-    "RTX 5080": GPUSpec(vram=16.0, bw=960.0, cores=10752),
-    "RTX 5070 Ti": GPUSpec(vram=16.0, bw=896.0, cores=8960),
-    "RTX 5070": GPUSpec(vram=12.0, bw=672.0, cores=6144),
-    "RTX 5060 Ti 16GB": GPUSpec(vram=16.0, bw=448.0, cores=4608),
-    "RTX 5060 Ti": GPUSpec(vram=8.0, bw=448.0, cores=4608),
-    "RTX 5060": GPUSpec(vram=8.0, bw=448.0, cores=3840),
-    "RTX 5050": GPUSpec(vram=8.0, bw=320.0, cores=2560),
-    "RTX 4090": GPUSpec(vram=24.0, bw=1008.0, cores=16384),
-    "RTX 4080 SUPER": GPUSpec(vram=16.0, bw=736.0, cores=10240),
-    "RTX 4080": GPUSpec(vram=16.0, bw=717.0, cores=9728),
-    "RTX 4070 Ti SUPER": GPUSpec(vram=16.0, bw=672.0, cores=8448),
-    "RTX 4070 Ti": GPUSpec(vram=12.0, bw=504.0, cores=7680),
-    "RTX 4070 SUPER": GPUSpec(vram=12.0, bw=504.0, cores=7168),
-    "RTX 4070": GPUSpec(vram=12.0, bw=504.0, cores=5888),
-    "RTX 4060 Ti 16GB": GPUSpec(vram=16.0, bw=288.0, cores=4352),
-    "RTX 4060 Ti": GPUSpec(vram=8.0, bw=288.0, cores=4352),
-    "RTX 4060": GPUSpec(vram=8.0, bw=272.0, cores=3072),
-    "RTX 3090 Ti": GPUSpec(vram=24.0, bw=1008.0, cores=10752),
-    "RTX 3090": GPUSpec(vram=24.0, bw=936.0, cores=10496),
-    "RTX 3080 Ti": GPUSpec(vram=12.0, bw=912.0, cores=10240),
-    "RTX 3080 12GB": GPUSpec(vram=12.0, bw=912.0, cores=8960),
-    "RTX 3080": GPUSpec(vram=10.0, bw=760.0, cores=8704),
-    "RTX 3070 Ti": GPUSpec(vram=8.0, bw=608.0, cores=6144),
-    "RTX 3070": GPUSpec(vram=8.0, bw=448.0, cores=5888),
-    "RTX 3060 Ti": GPUSpec(vram=8.0, bw=448.0, cores=4864),
-    "RTX 3060": GPUSpec(vram=12.0, bw=360.0, cores=3584),
-    "RTX 3050": GPUSpec(vram=8.0, bw=224.0, cores=2560),
-    "RTX 5090 Laptop": GPUSpec(vram=24.0, bw=896.0, cores=10496),
-    "RTX 5080 Laptop": GPUSpec(vram=16.0, bw=896.0, cores=7680),
-    "RTX 5070 Ti Laptop": GPUSpec(vram=12.0, bw=672.0, cores=5888),
-    "RTX 5070 Laptop": GPUSpec(vram=8.0, bw=384.0, cores=4608),
-    "RTX 5060 Laptop": GPUSpec(vram=8.0, bw=384.0, cores=3328),
-    "RTX 5050 Laptop": GPUSpec(vram=8.0, bw=384.0, cores=2560),
-    "RTX 4090 Laptop": GPUSpec(vram=16.0, bw=576.0, cores=9728),
-    "RTX 4080 Laptop": GPUSpec(vram=12.0, bw=432.0, cores=7424),
-    "RTX 4070 Laptop": GPUSpec(vram=8.0, bw=256.0, cores=4608),
-    "RTX 4060 Laptop": GPUSpec(vram=8.0, bw=256.0, cores=3072),
-    "RTX 4050 Laptop": GPUSpec(vram=6.0, bw=192.0, cores=2560),
-    "RTX 3080 Ti Laptop": GPUSpec(vram=16.0, bw=512.0, cores=7424),
-    "RTX 3080 Laptop": GPUSpec(vram=16.0, bw=448.0, cores=6144),
-    "RTX 3070 Ti Laptop": GPUSpec(vram=8.0, bw=448.0, cores=5888),
-    "RTX 3070 Laptop": GPUSpec(vram=8.0, bw=448.0, cores=5120),
-    "RTX 3060 Laptop": GPUSpec(vram=6.0, bw=336.0, cores=3840),
-    "RTX 3050 Ti Laptop": GPUSpec(vram=4.0, bw=192.0, cores=2560),
-    "RTX 3050 Laptop": GPUSpec(vram=4.0, bw=192.0, cores=2048),
-    "RTX PRO 6000": GPUSpec(vram=96.0, bw=1792.0, cores=24064),
-    "RTX 6000 Ada": GPUSpec(vram=48.0, bw=960.0, cores=18176),
-    "RTX 5880 Ada": GPUSpec(vram=48.0, bw=960.0, cores=14080),
-    "RTX 5000 Ada": GPUSpec(vram=32.0, bw=800.0, cores=12800),
-    "RTX 4500 Ada": GPUSpec(vram=24.0, bw=432.0, cores=7680),
-    "RTX 4000 SFF Ada": GPUSpec(vram=20.0, bw=320.0, cores=6144),
-    "RTX 4000 Ada": GPUSpec(vram=20.0, bw=360.0, cores=6144),
-    "RTX 3500 Ada": GPUSpec(vram=12.0, bw=432.0, cores=5120),
-    "RTX 2000 Ada": GPUSpec(vram=16.0, bw=224.0, cores=2816),
-    "RTX A6000": GPUSpec(vram=48.0, bw=768.0, cores=10752),
-    "RTX A5500": GPUSpec(vram=24.0, bw=768.0, cores=10240),
-    "RTX A5000": GPUSpec(vram=24.0, bw=768.0, cores=8192),
-    "RTX A4500": GPUSpec(vram=20.0, bw=640.0, cores=7168),
-    "RTX A4000": GPUSpec(vram=16.0, bw=448.0, cores=6144),
-    "RTX A2000": GPUSpec(vram=6.0, bw=288.0, cores=3328),
-    "RTX 2080 Ti": GPUSpec(vram=11.0, bw=616.0, cores=4352),
-    "RTX 2080 SUPER": GPUSpec(vram=8.0, bw=496.0, cores=3072),
-    "RTX 2080": GPUSpec(vram=8.0, bw=448.0, cores=2944),
-    "RTX 2070 SUPER": GPUSpec(vram=8.0, bw=448.0, cores=2560),
-    "RTX 2070": GPUSpec(vram=8.0, bw=448.0, cores=2304),
-    "RTX 2060 SUPER": GPUSpec(vram=8.0, bw=448.0, cores=2176),
-    "RTX 2060": GPUSpec(vram=6.0, bw=336.0, cores=1920),
-    "RTX 2060 12GB": GPUSpec(vram=12.0, bw=336.0, cores=2176),
-    "RTX 3050 6GB": GPUSpec(vram=6.0, bw=168.0, cores=2304),
-    "A100": GPUSpec(vram=80.0, bw=2039.0, cores=6912),
-    "H100": GPUSpec(vram=80.0, bw=3350.0, cores=14592),
-    "GH200": GPUSpec(vram=96.0, bw=4000.0, cores=16896),
-    "DGX Spark": GPUSpec(vram=128.0, bw=273.0, cores=6144),
-    "L40S": GPUSpec(vram=48.0, bw=864.0, cores=18176),
-    "L4": GPUSpec(vram=24.0, bw=300.0, cores=7424),
-    "T4": GPUSpec(vram=16.0, bw=300.0, cores=2560),
-    "Tesla P40": GPUSpec(vram=24.0, bw=346.0, cores=3840),
-    "RX 7900 XTX": GPUSpec(vram=24.0, bw=960.0, cores=6144),
-    "RX 7900 XT": GPUSpec(vram=20.0, bw=800.0, cores=5376),
-    "RX 7800 XT": GPUSpec(vram=16.0, bw=624.0, cores=3840),
-    "RX 7700 XT": GPUSpec(vram=12.0, bw=432.0, cores=3456),
-    "RX 7600 XT": GPUSpec(vram=16.0, bw=288.0, cores=2048),
-    "RX 7600": GPUSpec(vram=8.0, bw=288.0, cores=2048),
-    "RX 6900 XT": GPUSpec(vram=16.0, bw=512.0, cores=5120),
-    "RX 6800 XT": GPUSpec(vram=16.0, bw=512.0, cores=4608),
-    "RX 6800": GPUSpec(vram=16.0, bw=512.0, cores=3840),
-    "RX 6750 XT": GPUSpec(vram=12.0, bw=432.0, cores=2560),
-    "RX 6700 XT": GPUSpec(vram=12.0, bw=384.0, cores=2560),
-    "RX 6650 XT": GPUSpec(vram=8.0, bw=280.0, cores=2048),
-    "RX 6600 XT": GPUSpec(vram=8.0, bw=256.0, cores=2048),
-    "RX 6600": GPUSpec(vram=8.0, bw=224.0, cores=1792),
-    "RX 6500 XT": GPUSpec(vram=4.0, bw=144.0, cores=1024),
-    "Arc A770": GPUSpec(vram=16.0, bw=560.0, cores=4096),
-    "Arc A750": GPUSpec(vram=8.0, bw=512.0, cores=3584),
-    "Arc A580": GPUSpec(vram=8.0, bw=512.0, cores=3072),
-    "Arc A380": GPUSpec(vram=6.0, bw=186.0, cores=1024),
-    "GTX 1660 Ti": GPUSpec(vram=6.0, bw=288.0, cores=1536),
-    "GTX 1660 SUPER": GPUSpec(vram=6.0, bw=336.0, cores=1408),
-    "GTX 1660": GPUSpec(vram=6.0, bw=192.0, cores=1408),
-    "GTX 1650 SUPER": GPUSpec(vram=4.0, bw=192.0, cores=1280),
-    "GTX 1650 Ti": GPUSpec(vram=4.0, bw=192.0, cores=1024),
-    "GTX 1650": GPUSpec(vram=4.0, bw=128.0, cores=896),
-    "GTX 1630": GPUSpec(vram=4.0, bw=96.0, cores=512),
-    "GTX 1080 Ti": GPUSpec(vram=11.0, bw=484.0, cores=3584),
-    "GTX 1080": GPUSpec(vram=8.0, bw=320.0, cores=2560),
-    "GTX 1070 Ti": GPUSpec(vram=8.0, bw=256.0, cores=2432),
-    "GTX 1070": GPUSpec(vram=8.0, bw=256.0, cores=1920),
-    "GTX 1060 6GB": GPUSpec(vram=6.0, bw=192.0, cores=1280),
-    "GTX 1060 3GB": GPUSpec(vram=3.0, bw=192.0, cores=1152),
-    "GTX 1060": GPUSpec(vram=6.0, bw=192.0, cores=1280),
-    "GTX 1050 Ti": GPUSpec(vram=4.0, bw=112.0, cores=768),
-    "GTX 1050": GPUSpec(vram=2.0, bw=112.0, cores=640),
-    "GTX 980 Ti": GPUSpec(vram=6.0, bw=336.0, cores=2816),
-    "GTX 980": GPUSpec(vram=4.0, bw=224.0, cores=2048),
-    "GTX 970": GPUSpec(vram=4.0, bw=224.0, cores=1664),
-    "GTX 960": GPUSpec(vram=2.0, bw=112.0, cores=1024),
-    "GTX 950": GPUSpec(vram=2.0, bw=105.0, cores=768),
-    "Quadro RTX 8000": GPUSpec(vram=48.0, bw=672.0, cores=4608),
-    "Quadro RTX 6000": GPUSpec(vram=24.0, bw=672.0, cores=4608),
-    "Quadro RTX 5000": GPUSpec(vram=16.0, bw=448.0, cores=3072),
-    "Quadro RTX 4000": GPUSpec(vram=8.0, bw=416.0, cores=2304),
-    "Quadro RTX 3000": GPUSpec(vram=6.0, bw=336.0, cores=1920),
-    "Quadro T2000": GPUSpec(vram=4.0, bw=128.0, cores=1024),
-    "Quadro T1000": GPUSpec(vram=4.0, bw=128.0, cores=896),
-    "T1200": GPUSpec(vram=4.0, bw=192.0, cores=1024),
-    "NVIDIA T600": GPUSpec(vram=4.0, bw=192.0, cores=896),
-    "NVIDIA T550": GPUSpec(vram=4.0, bw=112.0, cores=1024),
-    "NVIDIA T500": GPUSpec(vram=4.0, bw=80.0, cores=896),
-    "Quadro P5200": GPUSpec(vram=16.0, bw=230.0, cores=2560),
-    "Quadro P5000": GPUSpec(vram=16.0, bw=288.0, cores=2560),
-    "Quadro P4200": GPUSpec(vram=8.0, bw=224.0, cores=1792),
-    "Quadro P4000": GPUSpec(vram=8.0, bw=192.0, cores=1792),
-    "Quadro P3000": GPUSpec(vram=6.0, bw=168.0, cores=1280),
-    "Quadro P3200": GPUSpec(vram=6.0, bw=192.0, cores=1792),
-    "Quadro P2000": GPUSpec(vram=5.0, bw=140.0, cores=1024),
-    "Quadro P1000": GPUSpec(vram=4.0, bw=82.0, cores=640),
-    "Quadro P620": GPUSpec(vram=4.0, bw=96.0, cores=512),
-    "Quadro P600": GPUSpec(vram=2.0, bw=64.0, cores=384),
-    "Quadro P520": GPUSpec(vram=2.0, bw=48.0, cores=384),
-    "Quadro P500": GPUSpec(vram=2.0, bw=64.0, cores=256),
-    "Quadro M5500": GPUSpec(vram=8.0, bw=211.0, cores=2048),
-    "Quadro M5000M": GPUSpec(vram=8.0, bw=160.0, cores=1536),
-    "Quadro M4000M": GPUSpec(vram=4.0, bw=160.0, cores=1024),
-    "Quadro M3000M": GPUSpec(vram=4.0, bw=160.0, cores=1024),
-    "Quadro M2200": GPUSpec(vram=4.0, bw=140.0, cores=1024),
-    "Quadro M2000M": GPUSpec(vram=4.0, bw=80.0, cores=640),
-    "Quadro M1200": GPUSpec(vram=4.0, bw=128.0, cores=640),
-    "Quadro M1000M": GPUSpec(vram=2.0, bw=80.0, cores=512),
-    "Quadro M620": GPUSpec(vram=2.0, bw=80.0, cores=512),
-    "Quadro M600M": GPUSpec(vram=2.0, bw=64.0, cores=384),
-    "Quadro M520": GPUSpec(vram=1.0, bw=40.0, cores=384),
-    "Quadro M500M": GPUSpec(vram=2.0, bw=16.0, cores=384),
-    "Quadro K5100M": GPUSpec(vram=8.0, bw=160.0, cores=1536),
-    "Quadro K5000M": GPUSpec(vram=4.0, bw=173.0, cores=1344),
-    "Quadro K4100M": GPUSpec(vram=4.0, bw=115.0, cores=1152),
-    "Quadro K4000M": GPUSpec(vram=4.0, bw=134.0, cores=960),
-    "Quadro K3100M": GPUSpec(vram=4.0, bw=80.0, cores=768),
-    "Quadro K3000M": GPUSpec(vram=2.0, bw=80.0, cores=576),
-    "Quadro K2100M": GPUSpec(vram=2.0, bw=48.0, cores=576),
-    "Quadro K2000M": GPUSpec(vram=2.0, bw=64.0, cores=384),
-    "Quadro K1100M": GPUSpec(vram=2.0, bw=64.0, cores=384),
-    "Quadro K1000M": GPUSpec(vram=2.0, bw=64.0, cores=384),
-    "Quadro K620M": GPUSpec(vram=2.0, bw=16.0, cores=384),
-    "Quadro K610M": GPUSpec(vram=1.0, bw=29.0, cores=192),
-    "Quadro K510M": GPUSpec(vram=1.0, bw=19.2, cores=192),
-    "Quadro K500M": GPUSpec(vram=2.0, bw=28.8, cores=192),
-    "RTX A3000": GPUSpec(vram=6.0, bw=192.0, cores=4096),
-    "RTX A3000 12GB": GPUSpec(vram=12.0, bw=336.0, cores=4096),
-    "RTX A2000 8GB": GPUSpec(vram=8.0, bw=224.0, cores=2560),
-    "RTX A1000": GPUSpec(vram=4.0, bw=224.0, cores=2048),
-    "RTX A500": GPUSpec(vram=4.0, bw=112.0, cores=2048),
-    "RX 5700 XT": GPUSpec(vram=8.0, bw=448.0, cores=2560),
-    "RX 5700": GPUSpec(vram=8.0, bw=448.0, cores=2304),
-    "RX 5600 XT": GPUSpec(vram=6.0, bw=288.0, cores=2304),
-    "RX 5500 XT": GPUSpec(vram=8.0, bw=224.0, cores=1408),
-    "RX 590": GPUSpec(vram=8.0, bw=256.0, cores=2304),
-    "RX 580": GPUSpec(vram=8.0, bw=256.0, cores=2304),
-    "RX 570": GPUSpec(vram=4.0, bw=224.0, cores=2048),
-    "RX 560": GPUSpec(vram=4.0, bw=112.0, cores=1024),
-    "Radeon VII": GPUSpec(vram=16.0, bw=1024.0, cores=3840),
-    "Vega 64": GPUSpec(vram=8.0, bw=484.0, cores=4096),
-    "Vega 56": GPUSpec(vram=8.0, bw=410.0, cores=3584),
-    "RX 9070 XT": GPUSpec(vram=16.0, bw=640.0, cores=4096),
-    "RX 9070": GPUSpec(vram=16.0, bw=640.0, cores=3584),
-    "RX 7900M": GPUSpec(vram=16.0, bw=720.0, cores=4608),
-    "RX 7700S": GPUSpec(vram=8.0, bw=288.0, cores=2048),
-    "RX 7600M XT": GPUSpec(vram=8.0, bw=288.0, cores=2048),
-    "RX 7600M": GPUSpec(vram=8.0, bw=288.0, cores=1792),
-    "RX 7600S": GPUSpec(vram=8.0, bw=288.0, cores=1792),
-    "RX 6800M": GPUSpec(vram=12.0, bw=384.0, cores=2560),
-    "RX 6700M": GPUSpec(vram=10.0, bw=320.0, cores=2304),
-    "RX 6600M": GPUSpec(vram=8.0, bw=224.0, cores=1792),
-    "RX 6500M": GPUSpec(vram=4.0, bw=144.0, cores=1024),
-    "Ryzen AI MAX+ 395": GPUSpec(vram=96.0, bw=256.0, cores=2560),
-    "Radeon 890M": GPUSpec(vram=0.0, bw=89.0, cores=1024),
-    "Radeon 880M": GPUSpec(vram=0.0, bw=89.0, cores=768),
-    "Radeon 780M": GPUSpec(vram=0.0, bw=89.0, cores=768),
-    "Radeon 760M": GPUSpec(vram=0.0, bw=89.0, cores=512),
-    "Radeon 680M": GPUSpec(vram=0.0, bw=77.0, cores=768),
-    "Radeon 660M": GPUSpec(vram=0.0, bw=77.0, cores=384),
-    "Vega 8": GPUSpec(vram=0.0, bw=51.0, cores=512),
-    "Vega 7": GPUSpec(vram=0.0, bw=51.0, cores=448),
-    "Arc A770M": GPUSpec(vram=16.0, bw=512.0, cores=4096),
-    "Arc A550M": GPUSpec(vram=8.0, bw=224.0, cores=2048),
-    "Arc A370M": GPUSpec(vram=4.0, bw=112.0, cores=1024),
-    "Iris Xe": GPUSpec(vram=0.0, bw=68.0, cores=96),
-    "Iris Plus": GPUSpec(vram=0.0, bw=50.0, cores=64),
-    "UHD 770": GPUSpec(vram=0.0, bw=76.0, cores=32),
-    "UHD 730": GPUSpec(vram=0.0, bw=76.0, cores=24),
-    "UHD Graphics 630": GPUSpec(vram=0.0, bw=42.0, cores=24),
-    "UHD Graphics 620": GPUSpec(vram=0.0, bw=34.0, cores=24),
-}
+def _build_gpu_db() -> dict[str, GPUSpec]:
+    from .gpu_data.nvidia import NVIDIA_GPUS
+    from .gpu_data.nvidia_pro import NVIDIA_PRO_GPUS
+    from .gpu_data.other import AMD_GPUS, INTEL_GPUS
+    db: dict[str, GPUSpec] = {}
+    db.update(NVIDIA_GPUS)
+    db.update(NVIDIA_PRO_GPUS)
+    db.update(AMD_GPUS)
+    db.update(INTEL_GPUS)
+    return db
 
-APPLE_DB: dict[str, AppleSpec] = {
-    "m5 max": AppleSpec(ram=36.0, bw=614.0, cpu_cores=18, gpu_cores=40),
-    "m5 pro": AppleSpec(ram=24.0, bw=307.0, cpu_cores=18, gpu_cores=20),
-    "m5": AppleSpec(ram=16.0, bw=153.0, cpu_cores=10, gpu_cores=10),
-    "m4 max": AppleSpec(ram=36.0, bw=546.0, cpu_cores=16, gpu_cores=40),
-    "m4 pro": AppleSpec(ram=24.0, bw=273.0, cpu_cores=14, gpu_cores=20),
-    "m4": AppleSpec(ram=16.0, bw=120.0, cpu_cores=10, gpu_cores=10),
-    "m3 ultra": AppleSpec(ram=96.0, bw=819.0, cpu_cores=32, gpu_cores=80),
-    "m3 max": AppleSpec(ram=36.0, bw=400.0, cpu_cores=16, gpu_cores=40),
-    "m3 pro": AppleSpec(ram=18.0, bw=150.0, cpu_cores=12, gpu_cores=18),
-    "m3": AppleSpec(ram=8.0, bw=100.0, cpu_cores=8, gpu_cores=10),
-    "m2 ultra": AppleSpec(ram=64.0, bw=800.0, cpu_cores=24, gpu_cores=76),
-    "m2 max": AppleSpec(ram=32.0, bw=400.0, cpu_cores=12, gpu_cores=38),
-    "m2 pro": AppleSpec(ram=16.0, bw=200.0, cpu_cores=12, gpu_cores=19),
-    "m2": AppleSpec(ram=8.0, bw=100.0, cpu_cores=8, gpu_cores=10),
-    "m1 ultra": AppleSpec(ram=64.0, bw=800.0, cpu_cores=20, gpu_cores=64),
-    "m1 max": AppleSpec(ram=32.0, bw=400.0, cpu_cores=10, gpu_cores=32),
-    "m1 pro": AppleSpec(ram=16.0, bw=200.0, cpu_cores=10, gpu_cores=16),
-    "m1": AppleSpec(ram=8.0, bw=68.0, cpu_cores=8, gpu_cores=8),
-}
+
+def _build_apple_db() -> dict[str, AppleSpec]:
+    from .gpu_data.other import APPLE_SILICON
+    return dict(APPLE_SILICON)
+
+
+GPU_DB: dict[str, GPUSpec] = _build_gpu_db()
+APPLE_DB: dict[str, AppleSpec] = _build_apple_db()
+
 
 def match_gpu(renderer: str) -> tuple[str, GPUSpec] | None:
+    """Return the best-matching (name, GPUSpec) from GPU_DB, or None."""
     upper = renderer.upper().replace("(TM)", "").strip()
-    upper = " ".join(upper.split()) # collapse whitespace
+    upper = " ".join(upper.split())  # collapse whitespace
     best_match = None
     best_len = 0
-    
+
     for name, spec in GPU_DB.items():
         if name.upper() in upper and len(name) > best_len:
             best_match = (name, spec)
             best_len = len(name)
-            
-    return best_match
 
+    return best_match

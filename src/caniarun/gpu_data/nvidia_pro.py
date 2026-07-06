@@ -1,0 +1,62 @@
+"""NVIDIA professional / workstation / datacenter GPU specs."""
+from ..gpu_specs import GPUSpec
+
+NVIDIA_PRO_GPUS: dict[str, GPUSpec] = {
+    # ── RTX Professional (Ada) ────────────────────────────────────────
+    "RTX PRO 6000": GPUSpec(vram=96.0, bw=1792.0, cores=24064),
+    "RTX 6000 Ada": GPUSpec(vram=48.0, bw=960.0, cores=18176),
+    "RTX 5880 Ada": GPUSpec(vram=48.0, bw=960.0, cores=14080),
+    "RTX 5000 Ada": GPUSpec(vram=32.0, bw=800.0, cores=12800),
+    "RTX 4500 Ada": GPUSpec(vram=24.0, bw=432.0, cores=7680),
+    "RTX 4000 SFF Ada": GPUSpec(vram=20.0, bw=320.0, cores=6144),
+    "RTX 4000 Ada": GPUSpec(vram=20.0, bw=360.0, cores=6144),
+    "RTX 3500 Ada": GPUSpec(vram=12.0, bw=432.0, cores=5120),
+    "RTX 2000 Ada": GPUSpec(vram=16.0, bw=224.0, cores=2816),
+    # ── RTX Ampere professional ───────────────────────────────────────
+    "RTX A6000": GPUSpec(vram=48.0, bw=768.0, cores=10752),
+    "RTX A5500": GPUSpec(vram=24.0, bw=768.0, cores=10240),
+    "RTX A5000": GPUSpec(vram=24.0, bw=768.0, cores=8192),
+    "RTX A4500": GPUSpec(vram=20.0, bw=640.0, cores=7168),
+    "RTX A4000": GPUSpec(vram=16.0, bw=448.0, cores=6144),
+    "RTX A3000": GPUSpec(vram=6.0, bw=192.0, cores=4096),
+    "RTX A3000 12GB": GPUSpec(vram=12.0, bw=336.0, cores=4096),
+    "RTX A2000": GPUSpec(vram=6.0, bw=288.0, cores=3328),
+    "RTX A2000 8GB": GPUSpec(vram=8.0, bw=224.0, cores=2560),
+    "RTX A1000": GPUSpec(vram=4.0, bw=224.0, cores=2048),
+    "RTX A500": GPUSpec(vram=4.0, bw=112.0, cores=2048),
+    # ── Quadro RTX ───────────────────────────────────────────────────
+    "Quadro RTX 8000": GPUSpec(vram=48.0, bw=672.0, cores=4608),
+    "Quadro RTX 6000": GPUSpec(vram=24.0, bw=672.0, cores=4608),
+    "Quadro RTX 5000": GPUSpec(vram=16.0, bw=448.0, cores=3072),
+    "Quadro RTX 4000": GPUSpec(vram=8.0, bw=416.0, cores=2304),
+    "Quadro RTX 3000": GPUSpec(vram=6.0, bw=336.0, cores=1920),
+    # ── Quadro T / NVIDIA T ──────────────────────────────────────────
+    "Quadro T2000": GPUSpec(vram=4.0, bw=128.0, cores=1024),
+    "Quadro T1000": GPUSpec(vram=4.0, bw=128.0, cores=896),
+    "T1200": GPUSpec(vram=4.0, bw=192.0, cores=1024),
+    "NVIDIA T600": GPUSpec(vram=4.0, bw=192.0, cores=896),
+    "NVIDIA T550": GPUSpec(vram=4.0, bw=112.0, cores=1024),
+    "NVIDIA T500": GPUSpec(vram=4.0, bw=80.0, cores=896),
+    # ── Quadro Pascal ────────────────────────────────────────────────
+    "Quadro P5200": GPUSpec(vram=16.0, bw=230.0, cores=2560),
+    "Quadro P5000": GPUSpec(vram=16.0, bw=288.0, cores=2560),
+    "Quadro P4200": GPUSpec(vram=8.0, bw=224.0, cores=1792),
+    "Quadro P4000": GPUSpec(vram=8.0, bw=192.0, cores=1792),
+    "Quadro P3200": GPUSpec(vram=6.0, bw=192.0, cores=1792),
+    "Quadro P3000": GPUSpec(vram=6.0, bw=168.0, cores=1280),
+    "Quadro P2000": GPUSpec(vram=5.0, bw=140.0, cores=1024),
+    "Quadro P1000": GPUSpec(vram=4.0, bw=82.0, cores=640),
+    "Quadro P620": GPUSpec(vram=4.0, bw=96.0, cores=512),
+    "Quadro P600": GPUSpec(vram=2.0, bw=64.0, cores=384),
+    "Quadro P520": GPUSpec(vram=2.0, bw=48.0, cores=384),
+    "Quadro P500": GPUSpec(vram=2.0, bw=64.0, cores=256),
+    # ── Datacenter ───────────────────────────────────────────────────
+    "A100": GPUSpec(vram=80.0, bw=2039.0, cores=6912),
+    "H100": GPUSpec(vram=80.0, bw=3350.0, cores=14592),
+    "GH200": GPUSpec(vram=96.0, bw=4000.0, cores=16896),
+    "DGX Spark": GPUSpec(vram=128.0, bw=273.0, cores=6144),
+    "L40S": GPUSpec(vram=48.0, bw=864.0, cores=18176),
+    "L4": GPUSpec(vram=24.0, bw=300.0, cores=7424),
+    "T4": GPUSpec(vram=16.0, bw=300.0, cores=2560),
+    "Tesla P40": GPUSpec(vram=24.0, bw=346.0, cores=3840),
+}

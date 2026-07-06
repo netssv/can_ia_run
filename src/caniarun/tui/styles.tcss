@@ -75,20 +75,7 @@ OptionList > .option-list--option-highlighted {
     text-style: bold;
 }
 
-#btn-share {
-    background: #0f172a;
-    color: #22d3ee;
-    border: solid #334155;
-    height: 1;
-    margin-bottom: 1;
-    min-width: 32;
-    text-style: none;
-}
-#btn-share:hover {
-    background: #1e293b;
-    color: #00ff9c;
-    border: solid #00ff9c;
-}
+
 
 /* Export Log Screen */
 #export-container {

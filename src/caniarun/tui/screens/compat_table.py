@@ -29,12 +29,12 @@ class CompatTableScreen(Screen):
         
         for r in sorted_results:
             for q in r.quants:
-                if q.quant == "F16": continue # skip F16 by default as in CLI
+                if q.quant_name == "F16": continue # skip F16 by default as in CLI
                 
                 # Assign colors based on fit_status
                 # can-run = green, tight = yellow, can-run-slow = orange, cannot-run = red
                 color = "white"
-                status = q.fit_status
+                status = q.status
                 if status == "can-run":
                     color = "green"
                 elif status == "tight":
@@ -46,15 +46,15 @@ class CompatTableScreen(Screen):
                 
                 # We can use rich markup directly in the cells
                 status_styled = f"[{color}]{status}[/{color}]"
-                grade_styled = f"[{color}]{q.grade}[/{color}]"
+                grade_styled = f"[{color}]{q.grade}[/]"
                 
-                ram_str = f"{q.ram_gb:.1f} GB" if q.ram_gb else "-"
+                ram_str = f"{r.model.min_ram_gb:.1f} GB" if r.model.min_ram_gb else "-"
                 vram_str = f"{q.vram_gb:.1f} GB" if q.vram_gb else "-"
                 
                 table.add_row(
                     r.model.name,
                     f"{r.model.params_billions}B",
-                    q.quant,
+                    q.quant_name,
                     ram_str,
                     vram_str,
                     status_styled,

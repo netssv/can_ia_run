@@ -7,7 +7,7 @@ from textual.containers import Vertical, Center
 from caniarun.tui.widgets.hardware_banner import HardwareBanner
 
 LOGO = (
-    "[bold yellow]  ('v')\n"
+    "[bold yellow] ('v')\n"
     " //-=-\\\\\n"
     " (\\_=_/)\n"
     "  ^^ ^^[/bold yellow]\n"
@@ -40,9 +40,9 @@ class HomeScreen(Screen):
                     Option("─" * 28, id="sep-4", disabled=True),
                     Option("Benchmark Run Log", id="opt-bench"),
                     Option("─" * 28, id="sep-5", disabled=True),
-                    Option("Exit", id="opt-exit"),
-                    Option("─" * 28, id="sep-6", disabled=True),
                     Option("Share / Compare hardware ID", id="opt-share"),
+                    Option("─" * 28, id="sep-6", disabled=True),
+                    Option("Exit", id="opt-exit"),
                     id="main-menu"
                 )
 

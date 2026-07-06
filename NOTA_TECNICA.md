@@ -1,4 +1,4 @@
-# Nota Técnica: Cómo adapté la tarea a mi proyecto "Caniarun"
+# Nota Técnica: Cómo se adaptó la tarea a mi proyecto "Caniarun"
 
 ## 1. ¿De qué trata esto?
 

@@ -41,11 +41,11 @@ STATUS_NORMALIZATION: Dict[str, str] = {
 
 # Reverse mapping for display purposes
 STATUS_DISPLAY: Dict[str, str] = {
-    "runnable":       "✅ Runnable",
-    "runnable_tight": "⚠️  Tight fit",
-    "degraded":       "🐢 Degraded (CPU offload)",
-    "blocked":        "🚫 Blocked",
-    "unknown":        "❓ Unknown",
+    "runnable":       "🧈 Runs clean",
+    "runnable_tight": "😐 Tight squeeze",
+    "degraded":       "🐌 CPU crawl",
+    "blocked":        "🗑️ No chance",
+    "unknown":        "🗑️ No chance",
 }
 
 # ── Supported Quantization Levels ───────────────────────────────────────────

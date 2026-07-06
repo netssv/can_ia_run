@@ -14,7 +14,7 @@ Aquí explico cómo transformé los requisitos de la rúbrica a mi proyecto:
 
 - **Leer desde JSON:** En mi programa, el sistema lee las evaluaciones de los modelos desde archivos JSON (`data/eval_dirty.json`).
 - **Conversión de montos:** En lugar de convertir dólares a euros, mi programa toma los Gigabytes de memoria que pide un modelo y le aplica una fórmula matemática para "convertirlo" al consumo real que tendrá en la computadora.
-- **Mapeo de estados y monedas:** En vez de monedas, yo uso el **Proveedor del modelo** (Meta, Google, etc.). Y en vez de estados bancarios (aprobado/rechazado), uso estados de hardware (como convertir el texto raro "can-run" a un estado normalizado "runnable").
+- **Mapeo de estados y monedas:** En vez de monedas, yo uso el **Proveedor del modelo** (Meta, Google, etc.). Y en vez de estados bancarios (aprobado/rechazado), uso estados de hardware (como convertir el texto raro "can-run" a un estado normalizado "Runs clean").
 - **Manejo de Fechas:** Cada evaluación que pasa por el sistema recibe un `timestamp` (fecha y hora) con un formato estándar.
 
 ### B. Validación y Métricas

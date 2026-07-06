@@ -2,22 +2,66 @@ from textual.app import ComposeResult
 from textual.widgets import DataTable
 from textual.containers import Container
 
+SORT_KEYS = {
+    0: lambda r: r.id,
+    1: lambda r: r.model_name,
+    2: lambda r: r.source,
+    3: lambda r: r.quant_level,
+    4: lambda r: r.vram_normalized_gb,
+    5: lambda r: r.score,
+    6: lambda r: r.vibe_level,
+    7: lambda r: r.toks_per_sec or 0,
+}
+
+COLUMNS = ["ID", "Model", "Source", "Quant", "VRAM (Norm)", "Score", "Vibe", "Speed"]
+
 class TabValid(Container):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._sort_col = 5       # default: Score
+        self._sort_asc = False   # default: descending (best first)
+        self._records = []
+
     def compose(self) -> ComposeResult:
         yield DataTable(id="valid-table")
-        
+
     def on_mount(self) -> None:
+        self._records = [r for r in self.app.benchmark_records if r.is_valid]
+        self._render_table()
+
+    def _render_table(self) -> None:
         table = self.query_one(DataTable)
         table.cursor_type = "row"
         table.zebra_stripes = True
-        table.add_columns("ID", "Model", "Source", "Quant", "VRAM (Norm)", "Score", "Vibe", "Speed")
-        
-        # Populate
-        valid_records = [r for r in self.app.benchmark_records if r.is_valid]
-        for r in valid_records:
+        table.clear(columns=True)
+
+        headers = []
+        for i, col in enumerate(COLUMNS):
+            if i == self._sort_col:
+                arrow = " ▲" if self._sort_asc else " ▼"
+                headers.append(col + arrow)
+            else:
+                headers.append(col)
+        table.add_columns(*headers)
+
+        key_fn = SORT_KEYS.get(self._sort_col, lambda r: r.score)
+        sorted_records = sorted(self._records, key=key_fn, reverse=not self._sort_asc)
+
+        for r in sorted_records:
             speed = f"{r.toks_per_sec:.0f}" if r.toks_per_sec else "N/A"
             table.add_row(
-                r.id, r.model_name, r.source, r.quant_level, 
-                f"{r.vram_normalized_gb:.1f} GB", str(r.score), 
+                r.id, r.model_name, r.source, r.quant_level,
+                f"{r.vram_normalized_gb:.1f} GB", str(r.score),
                 r.vibe_level, speed
             )
+
+    def on_data_table_header_selected(self, event: DataTable.HeaderSelected) -> None:
+        col_index = event.column_index
+        if col_index not in SORT_KEYS:
+            return
+        if self._sort_col == col_index:
+            self._sort_asc = not self._sort_asc
+        else:
+            self._sort_col = col_index
+            self._sort_asc = True
+        self._render_table()

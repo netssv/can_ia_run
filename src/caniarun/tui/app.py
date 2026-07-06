@@ -3,7 +3,7 @@ from textual.widgets import LoadingIndicator
 from textual import work
 from caniarun.hardware import detect, HardwareInfo
 from caniarun.compat import evaluate_all
-from caniarun.tui.screens.home import HomeScreen
+from caniarun.tui.screens.main_screen import MainScreen
 
 class CaniarunApp(App):
     """Main Textual application for caniarun."""
@@ -15,6 +15,7 @@ class CaniarunApp(App):
         self.hw = hw
         self.results = results
         self.benchmark_records = []
+        self.benchmark_source = "live"
         
     def compose(self) -> ComposeResult:
         yield LoadingIndicator(id="loading")
@@ -36,41 +37,20 @@ class CaniarunApp(App):
         self.app.call_from_thread(self._finish_loading)
         
     def _finish_loading(self) -> None:
-        # Load benchmark records
-        import json
-        from datetime import datetime
-        import os
-        from caniarun.benchmarklog.normalizer import NormalizedEvaluation
-        from caniarun.benchmarklog.validator import validate_all
+        # Run the live benchmark pipeline on real evaluation results
+        from caniarun.benchmarklog.runner import run_benchmark
+        from caniarun.share import generate_share_id
         
-        if os.path.exists("data/eval_dirty.json"):
-            with open("data/eval_dirty.json", "r", encoding="utf-8") as f:
-                raw = json.load(f)
-            records = []
-            for item in raw:
-                records.append(NormalizedEvaluation(
-                    id=item.get("id", "unknown"),
-                    source=item.get("source", ""),
-                    model_name=item.get("model_name", ""),
-                    provider=item.get("provider", ""),
-                    quant_level=item.get("quant_level", ""),
-                    vram_required_gb=item.get("vram_required_gb"),
-                    vram_normalized_gb=item.get("vram_normalized_gb"),
-                    score=item.get("score", 0),
-                    vibe_level=item.get("vibe_level", ""),
-                    fit_status=item.get("fit_status", ""),
-                    toks_per_sec=item.get("toks_per_sec"),
-                    timestamp=datetime.fromisoformat(item["timestamp"]),
-                ))
-            self.benchmark_records = validate_all(records)
+        self.benchmark_records = run_benchmark(self.hw, self.results)
+        self.benchmark_source = generate_share_id(self.hw)
 
-        # Remove loading and go to home screen
+        # Remove loading and go to main screen
         try:
             self.query_one("#loading").remove()
         except Exception:
             pass
             
-        self.push_screen(HomeScreen())
+        self.push_screen(MainScreen())
 
 if __name__ == "__main__":
     app = CaniarunApp()

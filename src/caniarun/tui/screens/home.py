@@ -30,18 +30,14 @@ class HomeScreen(Screen):
 
             with Center():
                 yield OptionList(
-                    Option("Show all models (log format)", id="opt-all"),
+                    Option("🔍 Explore Models", id="opt-explorer"),
                     Option("─" * 28, id="sep-1", disabled=True),
-                    Option("Filter by family (e.g., Llama, Qwen)", id="opt-family"),
-                    Option("─" * 28, id="sep-2", disabled=True),
-                    Option("Show full compatibility table", id="opt-compat"),
-                    Option("─" * 28, id="sep-3", disabled=True),
                     Option("Export log file", id="opt-export"),
-                    Option("─" * 28, id="sep-4", disabled=True),
+                    Option("─" * 28, id="sep-2", disabled=True),
                     Option("Benchmark Run Log", id="opt-bench"),
-                    Option("─" * 28, id="sep-5", disabled=True),
+                    Option("─" * 28, id="sep-3", disabled=True),
                     Option("Share / Compare hardware ID", id="opt-share"),
-                    Option("─" * 28, id="sep-6", disabled=True),
+                    Option("─" * 28, id="sep-4", disabled=True),
                     Option("Exit", id="opt-exit"),
                     id="main-menu"
                 )
@@ -79,15 +75,9 @@ class HomeScreen(Screen):
 
     def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
         opt_id = event.option.id
-        if opt_id == "opt-all":
-            from caniarun.tui.screens.all_models import AllModelsScreen
-            self.app.push_screen(AllModelsScreen())
-        elif opt_id == "opt-family":
-            from caniarun.tui.screens.filter_family import FilterFamilyScreen
-            self.app.push_screen(FilterFamilyScreen())
-        elif opt_id == "opt-compat":
-            from caniarun.tui.screens.compat_table import CompatTableScreen
-            self.app.push_screen(CompatTableScreen())
+        if opt_id == "opt-explorer":
+            from caniarun.tui.screens.model_explorer import ModelExplorerScreen
+            self.app.push_screen(ModelExplorerScreen())
         elif opt_id == "opt-export":
             from caniarun.tui.screens.export_log import ExportLogScreen
             self.app.push_screen(ExportLogScreen())

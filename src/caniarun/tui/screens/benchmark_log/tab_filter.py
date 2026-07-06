@@ -19,14 +19,17 @@ class TabFilter(Container):
         self.table.clear()
         valid_records = [r for r in self.app.benchmark_records if r.is_valid]
         
+        from caniarun.benchmarklog.rules import STATUS_DISPLAY
+        
         for r in valid_records:
-            if status_filter and status_filter.lower() not in r.fit_status.lower():
+            display_status = STATUS_DISPLAY.get(r.fit_status, r.fit_status)
+            if status_filter and status_filter.lower() not in display_status.lower():
                 continue
             if model_filter and model_filter.lower() not in r.model_name.lower():
                 continue
             
             self.table.add_row(
-                r.model_name, r.fit_status, r.source, str(r.score)
+                r.model_name, display_status, r.source, str(r.score)
             )
 
     def on_input_changed(self, event: Input.Changed) -> None:

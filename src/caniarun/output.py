@@ -31,17 +31,16 @@ def format_hw_panel(hw: HardwareInfo) -> None:
     console.print(panel)
 
 def _get_grade_markup(grade: str) -> str:
-    color_map = {
-        "S": "bold green",
-        "A": "green",
-        "B": "bright_green",
-        "C": "yellow",
-        "D": "orange1",
-        "F": "red",
-        "?": "dim"
+    emoji_map = {
+        "S": "🧈",
+        "A": "🔥",
+        "B": "😐",
+        "C": "🐌",
+        "D": "🗑️",
+        "F": "🗑️",
+        "?": "🗑️"
     }
-    color = color_map.get(grade, "white")
-    return f"[{color}][{grade}][/{color}]"
+    return emoji_map.get(grade, "🗑️")
 
 def render_table(results: List[ModelResult], show_f16: bool = False, specific_quant: str = None) -> None:
     if not results:
@@ -85,14 +84,13 @@ def render_table(results: List[ModelResult], show_f16: bool = False, specific_qu
         
     console.print(table)
     
-    # Legend
+    # Legend using vibes
     legend = (
-        "[bold green]S[/] = Runs great  "
-        "[green]A[/] = Runs well  "
-        "[bright_green]B[/] = Decent  "
-        "[yellow]C[/] = Tight fit  "
-        "[orange1]D[/] = Barely runs  "
-        "[red]F[/] = Too heavy"
+        "[bold green]🧈 Smooth[/]   "
+        "[green]🔥 Dope[/]   "
+        "[bright_green]😐 Meh[/]   "
+        "[yellow]🐌 Laggy[/]   "
+        "[red]🗑️ Trash[/]"
     )
     console.print(legend)
 
